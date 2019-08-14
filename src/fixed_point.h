@@ -35,6 +35,9 @@ typedef uint32_t FixedPoint_t;
 //! Value 1 in fixed point.
 #define FIXED_POINT_FACTOR (1 << FIXED_POINT_SHIFT)
 
+//! Mask for the fractional portion
+#define FIXED_POINT_MASK (FIXED_POINT_FACTOR - 1)
+
 //! Convert an integer value to a fixed point value.
 #define FIXED_POINT_FROM_INT(a) ((FixedPoint_t)((a) << FIXED_POINT_SHIFT))
 
