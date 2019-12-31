@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.11.1)
 
-project(synth C)
+project(synth)
 
 set(SOURCES src/main.c)
-
-add_executable(${PROJECT_NAME} ${SOURCES})
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR pic)
@@ -34,3 +32,22 @@ set(CMAKE_EXE_LINKER_FLAGS "\
     -Wl,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link \
     -Wl,--smart-io,-Map=\"${PROJECT_NAME}.map\",--report-mem \
     -Wl,--memorysummary,memoryfile.xml")
+
+add_executable(${PROJECT_NAME}.elf ${SOURCES})
+
+# Rule to generate hex file from ELF output
+set(MP_BIN2ELF xc16-bin2hex)
+add_custom_target(${PROJECT_NAME}.hex ALL DEPENDS ${PROJECT_NAME}.elf)
+add_custom_command(TARGET ${PROJECT_NAME}.hex
+    COMMAND ${MP_BIN2ELF} ARGS ${PROJECT_NAME}.elf)
+
+# Rule to generate MDB script
+set(MDB_FLASH_SCRIPT ${PROJECT_NAME}_mdb_flash.txt)
+add_custom_target(${MDB_FLASH_SCRIPT} DEPENDS ${PROJECT_NAME}.elf)
+add_custom_command(TARGET ${MDB_FLASH_SCRIPT}
+    COMMAND python
+    ARGS ../scripts/gen_mdb_flash.py ${PROJECT_NAME}.elf ${MDB_FLASH_SCRIPT})
+
+# Rule to flash program on hardware and run in MDB
+add_custom_target(flash DEPENDS ${MDB_FLASH_SCRIPT})
+add_custom_command(TARGET flash COMMAND mdb.sh ARGS ${MDB_FLASH_SCRIPT})
