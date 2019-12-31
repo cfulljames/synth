@@ -1,18 +1,18 @@
-/*
- * File:   main.c
- * Author: chris
- *
- * Created on December 23, 2019, 12:30 PM
- */
+#include <xc.h>
 
+#include "system.h"
 
-#include "xc.h"
+// This file is generated when the slave image is built and contains only the
+// slave image pointer declaration.
+#include "synth_slave.h"
 
 // System configuration will be performed at compile time when this file is
 // included.
 #include "sysconfig.h"
 
-int main(void) {
+int main(void)
+{
+    system_init();
 
     // Configure LED pin (RE0) as output
     TRISEbits.TRISE0 = 0;
@@ -23,7 +23,7 @@ int main(void) {
         PORTEbits.RE0 = !PORTEbits.RE0;
 
         // Wait.
-        for (volatile long i = 0; i < 100000; i ++);
+        for (volatile long i = 0; i < 1000000; i ++);
     }
 
     return 0;

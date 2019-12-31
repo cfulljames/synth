@@ -138,7 +138,7 @@
 #pragma config CPRD15 = MSTR            // Pin RD15 Ownership Bits (Master core owns pin.)
 
 #pragma config CPRE0 = MSTR             // Pin RE0 Ownership Bits (Master core owns pin.)
-#pragma config CPRE1 = MSTR             // Pin RE1 Ownership Bits (Master core owns pin.)
+#pragma config CPRE1 = SLV1             // Pin RE1 Ownership Bits (Slave 1 core owns pin.)
 #pragma config CPRE2 = MSTR             // Pin RE2 Ownership Bits (Master core owns pin.)
 #pragma config CPRE3 = MSTR             // Pin RE3 Ownership Bits (Master core owns pin.)
 #pragma config CPRE4 = MSTR             // Pin RE4 Ownership Bits (Master core owns pin.)

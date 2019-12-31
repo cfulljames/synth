@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.11.1)
 
-project(synth)
-
-set(SOURCES src/main.c)
+set(CMAKE_C_COMPILER "xc16-gcc")
+set(CMAKE_ASM_COMPILER "xc16-gcc")
+set(CMAKE_AR "xc16-ar")
+set(CMAKE_RANLIB "xc16-ranlib")
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR pic)
@@ -12,18 +13,21 @@ set(MP_PROCESSOR_OPTION 33CH128MP508)
 set(CND_CONF default)
 set(MP_LINKER_FILE_OPTION --script=p33CH128MP508.gld)
 
-set(CMAKE_C_COMPILER xc16-gcc)
 
 # Compiler flags (based on MPLAB generated makefiles)
 set(CMAKE_C_FLAGS "-mcpu=${MP_PROCESSOR_OPTION} -g -mno-eds-warn -omf=elf \
     -DXPRJ_default=${CND_CONF} -legacy-libc -O0 -msmart-io=1 -Wall \
     -msfr-warn=off -std=c99 ")
 
+# Assembler flags
+set(CMAKE_ASM_FLAGS "-mcpu=${MP_PROCESSOR_OPTION} -Wall")
+
 # Debug-specific compiler flags
 set(CMAKE_C_FLAGS_DEBUG "-D__DEBUG -D__MPLAB_DEBUGGER_PK3=1")
 
-# Default C link flags include some options that break xc16
+# Remove default linker flags that include some options that break xc16
 set(CMAKE_C_LINK_FLAGS "")
+set(CMAKE_ASM_LINK_FLAGS "")
 
 # Linker flags (based on MPLAB generated makefiles)
 set(CMAKE_EXE_LINKER_FLAGS "\
@@ -33,21 +37,11 @@ set(CMAKE_EXE_LINKER_FLAGS "\
     -Wl,--smart-io,-Map=\"${PROJECT_NAME}.map\",--report-mem \
     -Wl,--memorysummary,memoryfile.xml")
 
-add_executable(${PROJECT_NAME}.elf ${SOURCES})
-
-# Rule to generate hex file from ELF output
+# Executable for generating hex files and application images
 set(MP_BIN2ELF xc16-bin2hex)
-add_custom_target(${PROJECT_NAME}.hex ALL DEPENDS ${PROJECT_NAME}.elf)
-add_custom_command(TARGET ${PROJECT_NAME}.hex
-    COMMAND ${MP_BIN2ELF} ARGS ${PROJECT_NAME}.elf)
 
-# Rule to generate MDB script
-set(MDB_FLASH_SCRIPT ${PROJECT_NAME}_mdb_flash.txt)
-add_custom_target(${MDB_FLASH_SCRIPT} DEPENDS ${PROJECT_NAME}.elf)
-add_custom_command(TARGET ${MDB_FLASH_SCRIPT}
-    COMMAND python
-    ARGS ../scripts/gen_mdb_flash.py ${PROJECT_NAME}.elf ${MDB_FLASH_SCRIPT})
+# Top level project
+project(synth C ASM)
 
-# Rule to flash program on hardware and run in MDB
-add_custom_target(flash DEPENDS ${MDB_FLASH_SCRIPT})
-add_custom_command(TARGET flash COMMAND mdb.sh ARGS ${MDB_FLASH_SCRIPT})
+#add_subdirectory(src/slave)
+add_subdirectory(src/master)
