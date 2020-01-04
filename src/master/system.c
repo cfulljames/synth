@@ -7,32 +7,61 @@
 // slave image pointer declaration.
 #include "synth_slave.h"
 
+// Oscillator configuration register values for using the primary (external)
+// oscillator.
+#define OSCCON_XOSC_PRIMARY_OSC_NO_PLL 0x2
+#define OSCCON_XOSC_PRIMARY_OSC_WITH_PLL 0x3
+
+static void clock_init(void);
+
 void system_init(void)
 {
-    //Switch to FRC (no divider, no PLL), assuming we aren't already running from that.
-    if(OSCCONbits.COSC != 0b000)
-    {
-        __builtin_write_OSCCONH(0x00);  //NOSC = 0b000 = FRC without divider or PLL
-        __builtin_write_OSCCONL((OSCCON & 0x7E) | 0x01);  //Clear CLKLOCK and assert OSWEN = 1 to initiate switchover
-        //Wait for switch over to complete.
-        while(OSCCONbits.COSC != OSCCONbits.NOSC);
-    }
-
-    // Configure PLL prescaler, both PLL postscalers, and PLL feedback divider
-    CLKDIVbits.PLLPRE = 1;      // N1=1
-    PLLFBDbits.PLLFBDIV = 160;  // M = 160 (ex: FVCO = 1280MHz = 8MHz * 160)
-    PLLDIVbits.POST1DIV = 4;    // N2=4 (1280MHz / 4, followed by /2 (N3), followed by fixed / 2 = 80MHz)
-    PLLDIVbits.POST2DIV = 2;    // N3=2
-    // Initiate Clock Switch to FRC with PLL (NOSC = 0b001)
-    __builtin_write_OSCCONH(0x01);
-    if(OSCCONbits.COSC != OSCCONbits.NOSC)
-    {
-        __builtin_write_OSCCONL((OSCCON & 0x7F) | 0x01);    //Assert OSWEN and make sure CLKLOCK is clear, to initiate the switching operation
-        // Wait for clock switch to finish
-        while(OSCCONbits.COSC != OSCCONbits.NOSC);
-    }
+    clock_init();
 
     // Program and start the slave core image.
     _program_slave(1,0,synth_slave);
     _start_slave();
+}
+
+static void clock_init(void)
+{
+    if(OSCCONbits.COSC != OSCCON_XOSC_PRIMARY_OSC_NO_PLL)
+    {
+        // Not currently on primary (external) oscillator with PLL disabled;
+        // switch to this configuration while configuring the PLL.
+
+        // Set NSOC (lowest 3 bits of OSCCONH)
+        __builtin_write_OSCCONH(OSCCON_XOSC_PRIMARY_OSC_NO_PLL);
+        // Clear CLKLOCK and assert OSWEN = 1 to initiate switchover
+        __builtin_write_OSCCONL((OSCCON & 0x7E) | 0x01);
+        // Wait for switch over to complete.
+        while(OSCCONbits.COSC != OSCCONbits.NOSC);
+    }
+
+    /*
+     * PLL Frequency:
+     * 1440MHz = 8MHz / 1 (N1) * 180 (M)
+     *
+     * Final clock frequency (Fosc):
+     * 180MHz = 1440MHz / 4 (N2), followed by / 1 (N3), followed by / 2 (fixed)
+     */
+
+    // Configure PLL prescaler, both PLL postscalers, and PLL feedback divider
+    CLKDIVbits.PLLPRE = 1;      // N1=1
+    PLLFBDbits.PLLFBDIV = 180;  // M = 180
+    PLLDIVbits.POST1DIV = 4;    // N2=4
+    PLLDIVbits.POST2DIV = 1;    // N3=1
+
+    // Set NOSC (lowest 3 bits of OSCCONH)
+    __builtin_write_OSCCONH(OSCCON_XOSC_PRIMARY_OSC_WITH_PLL);
+    if(OSCCONbits.COSC != OSCCONbits.NOSC)
+    {
+        // Initiate Clock Switch to PLL
+
+        // Assert OSWEN and make sure CLKLOCK is clear, to initiate the
+        // switching operation
+        __builtin_write_OSCCONL((OSCCON & 0x7E) | 0x01);
+        // Wait for clock switch to finish
+        while(OSCCONbits.COSC != OSCCONbits.NOSC);
+    }
 }

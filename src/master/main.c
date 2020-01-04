@@ -2,10 +2,6 @@
 
 #include "system.h"
 
-// This file is generated when the slave image is built and contains only the
-// slave image pointer declaration.
-#include "synth_slave.h"
-
 // System configuration will be performed at compile time when this file is
 // included.
 #include "sysconfig.h"
