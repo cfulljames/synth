@@ -16,6 +16,9 @@ set(CMAKE_C_FLAGS "-g -mno-eds-warn -omf=elf \
     -DXPRJ_default=${CND_CONF} -legacy-libc -O0 -msmart-io=1 -Wall \
     -msfr-warn=off -std=c99 ")
 
+# Add these flags to generate assembly
+#    -fverbose-asm -Wa,-adhln \
+
 # Assembler flags
 set(CMAKE_ASM_FLAGS "-Wall")
 

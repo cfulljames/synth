@@ -25,15 +25,17 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,${MP_LINKER_FILE_OPTIO
 # Build the HAL library
 add_subdirectory(hal)
 
+# Build the application library
+add_subdirectory(app)
+
 # Generate the slave executable.  This will later be transformed into an image
 # file using the command below.
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
 
 # Add the subdirectory libraries
-target_link_libraries(${PROJECT_NAME}.elf slave_hal)
+target_link_libraries(${PROJECT_NAME}.elf slave_hal slave_app)
 
 # Generate an assembly image file (and header) from ELF output
-#add_custom_target(${PROJECT_NAME}.s ALL DEPENDS ${PROJECT_NAME}.elf)
 add_custom_command(OUTPUT ${PROJECT_NAME}.s
     COMMAND ${MP_BIN2ELF} ARGS --image ${PROJECT_NAME} ${PROJECT_NAME}.elf
     DEPENDS ${PROJECT_NAME}.elf)
