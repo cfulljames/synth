@@ -1,5 +1,6 @@
 #include "system.h"
 #include "uart.h"
+#include "dac.h"
 
 #include <xc.h>
 #include <stdio.h>
@@ -8,19 +9,18 @@ int main(void)
 {
     system_init();
     uart_init();
+    dac_init();
 
     printf("Slave initialization complete.\n");
 
-    // Configure LED pin (RE0) as output
-    TRISEbits.TRISE1 = 0;
-
     while (1)
     {
-        // Toggle LED pin.
-        PORTEbits.RE1 = !PORTEbits.RE1;
-
         // Wait.
-        for (volatile long i = 0; i < 1000000; i ++);
+        for (uint16_t i = 0; i < 0x0800; i ++)
+        {
+            for (volatile uint16_t j = 0; j < 100; j ++);
+            dac_set(i);
+        }
     }
 
     return 0;

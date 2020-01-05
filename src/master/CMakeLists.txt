@@ -7,8 +7,6 @@ project(synth_master C ASM)
 # Project source files
 set(SOURCES
     main.c
-    system.c
-    uart.c
 )
 
 # Include the slave project as part of the master build
@@ -21,11 +19,14 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=${MP_PROCESSOR_OPTION}")
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -mcpu=${MP_PROCESSOR_OPTION}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,${MP_LINKER_FILE_OPTION}")
 
+# Build the HAL library
+add_subdirectory(hal)
+
 # Add the sources and slave image to list of dependencies
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
 
-# Link slave image library into master executable
-target_link_libraries(${PROJECT_NAME}.elf synth_slave)
+# Add the subdirectory libraries
+target_link_libraries(${PROJECT_NAME}.elf master_hal)
 
 # Generate hex file from ELF output
 add_custom_target(${PROJECT_NAME}.hex ALL DEPENDS ${PROJECT_NAME}.elf)

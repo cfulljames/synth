@@ -126,10 +126,8 @@
 
 // Use the SLAVE_DEBUG_UART to select which device can write to the UART TX pin
 #if SLAVE_DEBUG_UART == 1
-#pragma message "Debug UART attached to slave core."
 #pragma config CPRC11 = SLV1             // Pin RC11 Ownership Bits (Slave core owns pin.)
 #else
-#pragma message "Debug UART attached to master core."
 #pragma config CPRC11 = MSTR             // Pin RC11 Ownership Bits (Master core owns pin.)
 #endif
 
@@ -157,7 +155,7 @@
 #pragma config CPRE4 = MSTR             // Pin RE4 Ownership Bits (Master core owns pin.)
 #pragma config CPRE5 = MSTR             // Pin RE5 Ownership Bits (Master core owns pin.)
 #pragma config CPRE6 = MSTR             // Pin RE6 Ownership Bits (Master core owns pin.)
-#pragma config CPRE7 = MSTR             // Pin RE7 Ownership Bits (Master core owns pin.)
+#pragma config CPRE7 = SLV1             // Pin RE7 Ownership Bits (Slave 1 core owns pin.)
 #pragma config CPRE8 = MSTR             // Pin RE8 Ownership Bits (Master core owns pin.)
 #pragma config CPRE9 = MSTR             // Pin RE9 Ownership Bits (Master core owns pin.)
 #pragma config CPRE10 = MSTR            // Pin RE10 Ownership Bits (Master core owns pin.)
