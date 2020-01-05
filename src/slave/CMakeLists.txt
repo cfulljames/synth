@@ -14,8 +14,18 @@ project(synth_slave C ASM)
 set(SOURCES
     main.c
     system.c
+    uart.c
 )
 
+# Set core-specific compiler and linker flags
+set(MP_PROCESSOR_OPTION 33CH128MP508S1)
+set(MP_LINKER_FILE_OPTION --script=p${MP_PROCESSOR_OPTION}.gld)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=${MP_PROCESSOR_OPTION}")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -mcpu=${MP_PROCESSOR_OPTION}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,${MP_LINKER_FILE_OPTION}")
+
+# Generate the slave executable.  This will later be transformed into an image
+# file using the command below.
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
 
 # Generate an assembly image file (and header) from ELF output

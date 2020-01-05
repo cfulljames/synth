@@ -8,6 +8,10 @@
 #ifndef __SYSCONFIG_H__
 #define __SYSCONFIG_H__
 
+// Set to 1 to connect the Slave core to the debug UART, or 0 to connect the
+// Master core.
+#define SLAVE_DEBUG_UART 0
+
 #pragma config BWRP = OFF               // Boot Segment Write-Protect bit (Boot Segment may be written)
 #pragma config BSS = DISABLED           // Boot Segment Code-Protect Level bits (No Protection (other than BWRP))
 #pragma config BSEN = OFF               // Boot Segment Control bit (No Boot Segment)
@@ -114,14 +118,23 @@
 #pragma config CPRC8 = MSTR             // Pin RC8 Ownership Bits (Master core owns pin.)
 #pragma config CPRC9 = MSTR             // Pin RC9 Ownership Bits (Master core owns pin.)
 #pragma config CPRC10 = MSTR            // Pin RC10 Ownership Bits (Master core owns pin.)
-#pragma config CPRC11 = MSTR            // Pin RC11 Ownership Bits (Master core owns pin.)
+//#pragma config CPRC11 = MSTR            // Pin RC11 Ownership Bits (Master core owns pin.)
 #pragma config CPRC12 = MSTR            // Pin RC12 Ownership Bits (Master core owns pin.)
 #pragma config CPRC13 = SLV1            // Pin RC13 Ownership Bits (Slave 1 core owns pin.)
 #pragma config CPRC14 = SLV1            // Pin RC14 Ownership Bits (Slave 1 core owns pin.)
 #pragma config CPRC15 = MSTR            // Pin RC15 Ownership Bits (Master core owns pin.)
 
+// Use the SLAVE_DEBUG_UART to select which device can write to the UART TX pin
+#if SLAVE_DEBUG_UART == 1
+#pragma message "Debug UART attached to slave core."
+#pragma config CPRC11 = SLV1             // Pin RC11 Ownership Bits (Slave core owns pin.)
+#else
+#pragma message "Debug UART attached to master core."
+#pragma config CPRC11 = MSTR             // Pin RC11 Ownership Bits (Master core owns pin.)
+#endif
+
 #pragma config CPRD0 = MSTR             // Pin RD0 Ownership Bits (Master core owns pin.)
-#pragma config CPRD1 = MSTR             // Pin RD1 Ownership Bits (Master core owns pin.)
+#pragma config CPRD1 = MSTR             // Pin RD2 Ownership Bits (Master core owns pin.)
 #pragma config CPRD2 = MSTR             // Pin RD2 Ownership Bits (Master core owns pin.)
 #pragma config CPRD3 = MSTR             // Pin RD3 Ownership Bits (Master core owns pin.)
 #pragma config CPRD4 = MSTR             // Pin RD4 Ownership Bits (Master core owns pin.)
@@ -154,7 +167,7 @@
 #pragma config CPRE14 = MSTR            // Pin RE14 Ownership Bits (Master core owns pin.)
 #pragma config CPRE15 = MSTR            // Pin RE15 Ownership Bits (Master core owns pin.)
 
-#pragma config S1FNOSC = FRC            // Oscillator Source Selection (Internal Fast RC (FRC))
+#pragma config S1FNOSC = 0x02           // Oscillator Source Selection (Internal Fast RC (FRC))
 #pragma config S1IESO = OFF             // Two-speed Oscillator Start-up Enable bit (Start up with user-selected oscillator source)
 #pragma config S1OSCIOFNC = ON          // Slave OSC2 Pin Function bit (OSC2 is general purpose digital I/O pin)
 #pragma config S1FCKSM = CSECMD         // Clock Switching Mode bits (Clock switching is enabled,Fail-safe Clock Monitor is disabled)

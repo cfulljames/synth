@@ -9,18 +9,15 @@ set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR pic)
 set(CMAKE_CROSSCOMPILING 1)
 
-set(MP_PROCESSOR_OPTION 33CH128MP508)
 set(CND_CONF default)
-set(MP_LINKER_FILE_OPTION --script=p33CH128MP508.gld)
-
 
 # Compiler flags (based on MPLAB generated makefiles)
-set(CMAKE_C_FLAGS "-mcpu=${MP_PROCESSOR_OPTION} -g -mno-eds-warn -omf=elf \
+set(CMAKE_C_FLAGS "-g -mno-eds-warn -omf=elf \
     -DXPRJ_default=${CND_CONF} -legacy-libc -O0 -msmart-io=1 -Wall \
     -msfr-warn=off -std=c99 ")
 
 # Assembler flags
-set(CMAKE_ASM_FLAGS "-mcpu=${MP_PROCESSOR_OPTION} -Wall")
+set(CMAKE_ASM_FLAGS "-Wall")
 
 # Debug-specific compiler flags
 set(CMAKE_C_FLAGS_DEBUG "-D__DEBUG -D__MPLAB_DEBUGGER_PK3=1")
@@ -31,7 +28,7 @@ set(CMAKE_ASM_LINK_FLAGS "")
 
 # Linker flags (based on MPLAB generated makefiles)
 set(CMAKE_EXE_LINKER_FLAGS "\
-    -Wl,--local-stack,--defsym=__MPLAB_BUILD=1,${MP_LINKER_FILE_OPTION} \
+    -Wl,--local-stack,--defsym=__MPLAB_BUILD=1 \
     -Wl,--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr \
     -Wl,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link \
     -Wl,--smart-io,-Map=\"${PROJECT_NAME}.map\",--report-mem \
