@@ -3,7 +3,7 @@ project(slave_app C ASM)
 
 # Project source files
 set(SOURCES
-    synth.c
+    audio.c
 )
 
 # Generate a sine table header file (sine.h)

@@ -1,4 +1,4 @@
-#include "synth.h"
+#include "audio.h"
 #include "dac.h"
 
 // This file is generated using a python script.  It just contains a sine table,
@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 
-void synth_init(void)
+void audio_init(void)
 {
     // Configure Capture Compare Timer 1 for use as the sample timer.
     // (~44100 Hz)
@@ -34,7 +34,7 @@ void synth_init(void)
 uint16_t sample;
 volatile uint8_t ready = 0;
 
-void synth_run(void)
+void audio_run(void)
 {
     uint32_t index = 0;
     uint32_t freq = (uint32_t)(((2048.0 * 32.70) / 44101.0) * 65536);
