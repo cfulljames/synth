@@ -1,11 +1,10 @@
 """Generate a sine table for use in the synth engine.
 
-This will generate a C header file containing a single array (called
-g_sine_table) and a macro (SINE_TABLE_LENGTH).  The values in the table are
-normalized to the range INT16_MIN to INT16_MAX.
+This will generate an assembly file containing the definition of the sine table.
+This will have the label "_sine_table" and be stored in the program space.
 
 Usage:
-    python gen_sine_table.py <output file>
+    python gen_sine_table.py <asm file> <h file> <inc file>
 """
 import sys
 import math
@@ -17,7 +16,7 @@ SINE_TABLE_LENGTH = 2048
 MAX_VALUE = 0x7FFF
 
 # Check command line arguments
-if len(sys.argv) != 2:
+if len(sys.argv) != 4:
     sys.stderr.write('Incorrect number of arguments.\n')
     sys.exit(1)
 
@@ -26,18 +25,27 @@ sine_values = []
 # Calculate sine table values
 for i in range(SINE_TABLE_LENGTH):
     radians = i * 2 * math.pi / SINE_TABLE_LENGTH
-    sine_values.append(round(math.sin(radians) * MAX_VALUE))
+    sine_values.append(int(round(math.sin(radians) * MAX_VALUE)))
 
 # Write values to file
-with open(sys.argv[1], 'w') as output_file:
-    output_file.write('#ifndef __SINE_TABLE_H__\n')
-    output_file.write('#define __SINE_TABLE_H__\n')
-    output_file.write(
-        '#define SINE_TABLE_LENGTH {}\n'.format(SINE_TABLE_LENGTH))
-    output_file.write('const int16_t g_sine_table[] = {\n')
+with open(sys.argv[1], 'w') as asm_file:
+    asm_file.write('    .include "sine.inc"\n')
+    asm_file.write('    .section __sine_table psv,page\n')
+    asm_file.write('    .global _sine_table\n')
+    asm_file.write('_sine_table:\n')
 
+    # Convert numbers to two's complement hex and add to file as .word
     for value in sine_values:
-        output_file.write('    {},\n'.format(value))
+        value_bytes = value.to_bytes(2, byteorder='big', signed=True)
+        value_hex = value_bytes.hex()
+        asm_file.write('    .word 0x{}\n'.format(value_hex))
 
-    output_file.write('};\n')
-    output_file.write('#endif')
+# Generate C header
+with open(sys.argv[2], 'w') as c_header:
+    c_header.write('#include <stdint.h>\n')
+    c_header.write('__attribute__((space(psv)))\n')
+    c_header.write('extern int16_t sine_table[];\n')
+
+# Generate assembly header
+with open(sys.argv[3], 'w') as asm_header:
+    asm_header.write('    .extern _sine_table\n')

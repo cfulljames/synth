@@ -2,6 +2,7 @@
 #include "uart.h"
 #include "dac.h"
 #include "audio.h"
+#include "synth.h"
 
 #include <xc.h>
 #include <stdio.h>
@@ -12,6 +13,7 @@ int main(void)
     uart_init();
     dac_init();
     audio_init();
+    synth_init();
 
     printf("Slave initialization complete.\n");
 

@@ -4,14 +4,18 @@ project(slave_app C ASM)
 # Project source files
 set(SOURCES
     audio.c
+    synth.s
+    sine.s
 )
 
-# Generate a sine table header file (sine.h)
-add_custom_command(OUTPUT sine.h
-    COMMAND python ARGS ${CMAKE_SOURCE_DIR}/scripts/gen_sine_table.py sine.h)
+# Generate a sine table assembly file (sine.s)
+set(SINE_TABLE_GEN_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/gen_sine_table.py)
+add_custom_command(OUTPUT sine.s sine.h sine.inc
+    COMMAND python3 ARGS ${SINE_TABLE_GEN_SCRIPT} sine.s sine.h sine.inc
+    DEPENDS ${SINE_TABLE_GEN_SCRIPT})
 
 # Build a static library
-add_library(${PROJECT_NAME} ${SOURCES} sine.h)
+add_library(${PROJECT_NAME} ${SOURCES})
 
 # Provide header files in include directory and generated header in binary dir
 target_include_directories(${PROJECT_NAME}

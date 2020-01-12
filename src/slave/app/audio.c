@@ -1,9 +1,6 @@
 #include "audio.h"
 #include "dac.h"
-
-// This file is generated using a python script.  It just contains a sine table,
-// g_sine_table, and a size macro SINE_TABLE_LENGTH.
-#include "sine.h"
+#include "synth.h"
 
 #include <stdio.h>
 
@@ -31,25 +28,9 @@ void audio_init(void)
     CCP1CON1Lbits.CCPON = 1;
 }
 
-uint16_t sample;
-volatile uint8_t ready = 0;
-
 void audio_run(void)
 {
-    uint32_t index = 0;
-    uint32_t freq = (uint32_t)(((2048.0 * 32.70) / 44101.0) * 65536);
-    while (1)
-    {
-        // Wait for DAC to write the current sample.
-        while (!ready);
-
-        // Compute the next sample.
-        sample = (g_sine_table[(index >> 16) & 0x07FF] + 0x8000) >> 4;
-        index += freq;
-
-        // Clear the flag.
-        ready = 0;
-    }
+    synth_run();
 }
 
 __attribute__((__interrupt__, auto_psv))
@@ -59,8 +40,8 @@ void _CCT1Interrupt(void)
     _CCT1IF = 0;
 
     // Write the next sample to the DAC.
-    dac_set(sample);
+    dac_set(synth_sample);
 
     // Set the flag to indicate the sample was written.
-    ready = 1;
+    synth_dac_ready = 1;
 }
