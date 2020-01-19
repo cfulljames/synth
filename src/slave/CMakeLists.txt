@@ -32,6 +32,11 @@ add_subdirectory(app)
 # file using the command below.
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
 
+# Generate hex file from ELF output
+add_custom_target(${PROJECT_NAME}.hex ALL DEPENDS ${PROJECT_NAME}.elf)
+add_custom_command(TARGET ${PROJECT_NAME}.hex
+    COMMAND ${MP_BIN2ELF} ARGS ${PROJECT_NAME}.elf)
+
 # Add the subdirectory libraries
 target_link_libraries(${PROJECT_NAME}.elf slave_hal slave_app)
 

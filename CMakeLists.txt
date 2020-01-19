@@ -12,7 +12,7 @@ set(CMAKE_CROSSCOMPILING 1)
 set(CND_CONF default)
 
 # Compiler flags (based on MPLAB generated makefiles)
-set(CMAKE_C_FLAGS "-g -mno-eds-warn -omf=elf \
+set(CMAKE_C_FLAGS "-mno-eds-warn -omf=elf \
     -DXPRJ_default=${CND_CONF} -legacy-libc -O0 -msmart-io=1 -Wall \
     -msfr-warn=off -std=c99 ")
 
@@ -23,7 +23,10 @@ set(CMAKE_C_FLAGS "-g -mno-eds-warn -omf=elf \
 set(CMAKE_ASM_FLAGS "-Wall")
 
 # Debug-specific compiler flags
-set(CMAKE_C_FLAGS_DEBUG "-D__DEBUG -D__MPLAB_DEBUGGER_PK3=1")
+set(CMAKE_C_FLAGS_DEBUG "-g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1")
+
+# Debug-specific assembler flags
+set(CMAKE_ASM_FLAGS_DEBUG "-Wa,-g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1")
 
 # Remove default linker flags that include some options that break xc16
 set(CMAKE_C_LINK_FLAGS "")
