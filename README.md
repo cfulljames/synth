@@ -12,10 +12,10 @@ context of a fully modern synthesizer.
 
 Platform
 --------
-Currently, the plan is to use a Microchip dsPIC33CH as the basis for this
-project.  This "digital signal controller" provides a good balance of DSP and
-MCU functions in a highly affordable package.  It's not exactly meant for audio,
-but it has the necessary features to be used for this purpose.
+This project uses a Microchip dsPIC33CH128MP508 as the target platform.  This
+"digital signal controller" provides a good balance of DSP and MCU functions in
+a highly affordable package.  It's not exactly meant for audio, but it has the
+necessary features to be used for this purpose.
 
 Building
 --------
@@ -24,16 +24,45 @@ Building
 To build the software you'll need the following installed on your system:
 
 - [CMake](https://cmake.org)
+- [Python 3.7 or later](https://python.org)
 - Microchip's [MPLAB IDE](https://www.microchip.com/mplab/mplab-x-ide)
 - Microchip's [XC16 Toolchain](https://www.microchip.com/mplab/compilers)
 
-The IDE isn't used for building, but it will be needed for flashing the code.
-It's also the most convenient way to install the XC16 toolchain.
+#### A Note on the MPLAB Build System
+MPLAB's build system is a bit limited, especially for dual core devices like the
+dsPIC33C series.  Many of the features (like user Makefile projects) don't work
+quite as expected.  To work around this, a normal "Standalone" project has been
+created for each core, but the Makefiles for each project have been modified to
+skip the MPLAB build and instead run a custom CMake build.  This allows for much
+greater flexibility in generating files and tracking dependencies.
 
-Ensure that `cmake` and the XC16 toolchain (`xc16-gcc`, etc.) are in your system
-`PATH`.
+### Setup
+After cloning the repo, copy the file `mplab/conf.mk.defaults` to
+`mplab/conf.mk` and modify the values with the appropriate paths for your
+system.  The defaults supplied are for macOS.
 
-### Procedure
+### MPLAB IDE
+
+#### Who is this for?
+This method is especially useful for debugging, or if you like working in MPLAB
+IDE.  If you prefer a command line build process, see below.
+
+#### Procedure
+After cloning the repo, launch MPLAB IDE and open the two projects contained in
+the `mplab` directory.  From there, the build and debug commands should work as
+expected.  If CMake reports any errors, check that your `conf.mk` file contains
+the correct paths.
+
+### Command Line
+
+#### Who is this for?
+This method is useful if you prefer a command line interface for building,
+expecially if you're familiar with GNU Make and CMake.  A word of caution: The
+command line debugging support (via MDB) is pretty bad.  If you prefer a
+graphical experience or if you want advanced debugging capabilities, see the
+MPLAB procedure above.
+
+#### Procedure
 After cloning the repo, `cd` into this directory and run the following commands:
 
 ```
@@ -56,6 +85,21 @@ following method:
 - Run `make flash`
 
 This will launch MDB on the command line to load the program.
+
+Debugging
+---------
+Debugging this project is probably a bit more work than you're used to.  The
+dsPIC33C family contains two (mostly) independent dsPIC cores in a single
+package, and they can be debugged in three ways:
+
+- Master-only: The slave core runs freely while the master core is debugged.
+- Slave-only: The master core runs freely while the slave core is debugged.
+- Dual simultaneous debug: Both cores are debugged simultaneously.
+
+This requires some additional configuration and/or code modification depending
+on the setup.  See
+[Microchip's Dual Core Documentation](http://ww1.microchip.com/downloads/en/AppNotes/AN2721,-Getting-Started-with-Dual-Core-DS00002721A.pdf)
+for details.
 
 Testing
 -------

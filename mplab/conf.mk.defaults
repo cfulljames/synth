@@ -1,0 +1,16 @@
+# This file contains the locations of a few utilities that are required by the
+# build system and likely won't be found automatically by MPLAB.  Modify it with
+# the paths from your system and save as `conf.mk` in the same directory.
+#
+# Note that these values should contain the directories that these utilities
+# reside in (i.e. the values that you would otherwise add to your system PATH)
+# and should NOT include the actual executable name.
+
+# CMake location
+USER_CMAKE_PATH:=/usr/local/bin/
+
+# Python 3.7+ location
+USER_PYTHON3_PATH:=/usr/local/bin/
+
+# Microchip XC16 toolchain location
+USER_TOOLCHAIN_PATH:=/Applications/microchip/xc16/v1.40/bin/
