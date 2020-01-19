@@ -37,6 +37,22 @@ set(CMAKE_EXE_LINKER_FLAGS "\
     -Wl,--smart-io,-Map=\"${PROJECT_NAME}.map\",--report-mem \
     -Wl,--memorysummary,memoryfile.xml")
 
+# Add debug linker flags to keep debug memory regions free and define debug
+# symbols.
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "\
+    -mreserve=data@0x1000:0x101B \
+    -mreserve=data@0x101C:0x101D \
+    -mreserve=data@0x101E:0x101F \
+    -mreserve=data@0x1020:0x1021 \
+    -mreserve=data@0x1022:0x1023 \
+    -mreserve=data@0x1024:0x1027 \
+    -mreserve=data@0x1028:0x104F \
+    -Wl,--defsym=__MPLAB_DEBUG=1 \
+    -Wl,--defsym=__DEBUG=1 \
+    -Wl,-D__DEBUG=__DEBUG \
+    -Wl,--defsym=__MPLAB_DEBUGGER_PK3=1 \
+    -Wl,--defsym=__S1DEBUG=1")
+
 # Executable for generating hex files and application images
 set(MP_BIN2ELF xc16-bin2hex)
 
