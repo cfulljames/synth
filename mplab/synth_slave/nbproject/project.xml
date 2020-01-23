@@ -14,10 +14,15 @@
             <make-dep-projects/>
             <sourceRootList>
                 <sourceRootElem>../../src/slave</sourceRootElem>
+                <sourceRootElem>../../test/asm</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>
                     <name>default</name>
+                    <type>2</type>
+                </confElem>
+                <confElem>
+                    <name>test_synth</name>
                     <type>2</type>
                 </confElem>
             </confList>

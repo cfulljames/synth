@@ -62,5 +62,21 @@ set(MP_BIN2ELF xc16-bin2hex)
 # Top level project
 project(synth C ASM)
 
-#add_subdirectory(src/slave)
+# Add master, which will include the slave image
 add_subdirectory(src/master)
+
+# Set core-specific compiler and linker flags to use for Unity and unit tests
+set(MP_PROCESSOR_OPTION 33CH128MP508S1)
+set(MP_LINKER_FILE_OPTION --script=p${MP_PROCESSOR_OPTION}.gld)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=${MP_PROCESSOR_OPTION} -DUNITY_INCLUDE_CONFIG_H")
+set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -mcpu=${MP_PROCESSOR_OPTION}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,${MP_LINKER_FILE_OPTION}")
+
+# Build Unity library for unit tests
+add_subdirectory(lib/unity/src unity EXCLUDE_FROM_ALL)
+
+# Add unity_config.h to unity build
+target_include_directories(unity PRIVATE test/asm/include)
+
+# Add assembly unit tests
+add_subdirectory(test/asm EXCLUDE_FROM_ALL)
