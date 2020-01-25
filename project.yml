@@ -29,7 +29,6 @@
   :test:
     - +:test/**
     - -:test/support
-    - -:test/asm
   :source:
     - src/**
   :support:

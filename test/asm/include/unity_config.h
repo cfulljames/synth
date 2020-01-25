@@ -1,8 +1,0 @@
-#ifndef __UNITY_CONFIG_H__
-#define __UNITY_CONFIG_H__
-
-#define UNITY_INT_WIDTH 16
-#define UNITY_EXCLUDE_FLOAT
-#define UNITY_EXCLUDE_FLOAT_PRINT
-
-#endif

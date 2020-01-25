@@ -54,19 +54,6 @@ PATH:=${USER_CMAKE_PATH}:${USER_PYTHON3_PATH}:${USER_TOOLCHAIN_PATH}:${PATH}
 	
 # Directory to run CMake
 BUILD_DIR:=output
-	
-# Set configuration-specific settings
-ifeq (${CONF}, test_synth)
-MAKE_TARGET:=test_synth.hex
-CMAKE_OUTPUT_DIR:=${BUILD_DIR}/test/asm
-CMAKE_HEX_FILE:=${CMAKE_OUTPUT_DIR}/test_synth.hex
-CMAKE_ELF_FILE:=${CMAKE_OUTPUT_DIR}/test_synth.elf
-else
-MAKE_TARGET:=synth_slave.hex
-CMAKE_OUTPUT_DIR:=${BUILD_DIR}/src/master/slave
-CMAKE_HEX_FILE:=${CMAKE_OUTPUT_DIR}/synth_slave.hex
-CMAKE_ELF_FILE:=${CMAKE_OUTPUT_DIR}/synth_slave.elf
-endif
 
 # Set build type-specific settings
 ifeq (${TYPE_IMAGE}, DEBUG_RUN)
@@ -80,7 +67,12 @@ endif
 # Distribution directory
 DIST_DIR:=dist/${CONF}/${BUILD_NAME_SUFFIX}
 
+# CMake build artifacts directory
+CMAKE_OUTPUT_DIR:=${BUILD_DIR}/src/master/slave
 
+# Hex file to copy after CMake build
+CMAKE_HEX_FILE:=${CMAKE_OUTPUT_DIR}/synth_slave.hex
+CMAKE_ELF_FILE:=${CMAKE_OUTPUT_DIR}/synth_slave.elf
 
 # Final hex file
 FINAL_HEX_FILE:=${DIST_DIR}/synth_slave.${BUILD_NAME_SUFFIX}.hex
@@ -91,7 +83,7 @@ build:
 	${MKDIR} ${BUILD_DIR}
 	${MKDIR} ${DIST_DIR}
 	cd ${BUILD_DIR} ; cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../../../
-	${MAKE} -C ${BUILD_DIR} ${MAKE_TARGET} --no-print-directory
+	${MAKE} -C ${BUILD_DIR} synth_slave --no-print-directory
 	cp ${CMAKE_HEX_FILE} ${FINAL_HEX_FILE}
 	cp ${CMAKE_ELF_FILE} ${FINAL_ELF_FILE}
 
