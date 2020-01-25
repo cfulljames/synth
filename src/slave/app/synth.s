@@ -66,16 +66,12 @@ _synth_init:
 
 _synth_run:
 
-    ; WAIT FOR NEXT SAMPLE INTERRUPT
-    ; Turn LED off while waiting
-    bclr PORTE, #1
-    ; Wait for DAC to set the ready flag.
-    cp0.b _synth_dac_ready
+    ; Wait for next sample interrupt
+    bclr PORTE, #1              ; Turn LED off while waiting
+    cp0.b _synth_dac_ready      ; Wait for DAC to set the ready flag
     bra z, _synth_run
-    ; Clear the flag
-    clr _synth_dac_ready
-    ; Turn LED on while running calculations
-    bset PORTE, #1
+    clr _synth_dac_ready        ; Clear the flag
+    bset PORTE, #1              ; Turn LED on while running calculations
 
     ; Set accumulator, frequency and output pointers
     mov #_osc_freqs, w2
@@ -83,63 +79,46 @@ _synth_run:
     mov #_osc_outputs, w4
     mov #_mod_matrix, w10
 
-    ; START LOOP
+    ; Run the following calculations for each operator in the voice
     do #2, 1f
 
-    ; CALCULATE MODULATION PHASE OFFSET
-    ; Load pointer to first oscillator output
-    mov #_osc_outputs, w8
+    ; Calculate modulation phase offset for this operator
+    mov #_osc_outputs, w8       ; Load pointer to first oscillator output
     ; Clear accumulator B and prefetch first mod and sample
     clr A, [w8]+=2, w5, [w10]+=2, w6
     ; Multiply each output sample by the corresponding modulation amount
     mac w5*w6, A, [w8]+=2, w5, [w10]+=2, w6
     mac w5*w6, A, [w8]+=2, w5, [w10]+=2, w6
     mac w5*w6, A
-    ; Store vector multiplication result
-    sac A, w5
+    sac A, w5                   ; Store vector multiplication result
 
-    ; CALCULATE RAW SAMPLE INDEX
-    ; Load accumulator upper word
-    mov [w3 + 2], w0
-    ; Add modulation phase offset
-    add w0, w5, w0
-    ; Mask out unused upper bits to get a valid index
-    mov #0x07FF, w1
+    ; Calculate sine table index from phase accumulator and modulation
+    mov [w3 + 2], w0            ; Load accumulator upper word
+    add w0, w5, w0              ; Add modulation phase offset
+    mov #0x07FF, w1             ; Mask out unused upper bits to get valid index
     and w1, w0, w0
-    ; Shift left 1 bit since each entry is two bytes
-    sl w0, #1, w0
+    sl w0, #1, w0               ; Shift left 1 bit since each entry is two bytes
 
-    ; GET RAW SAMPLE VALUE
-    ; Calculate address of sample in table
+    ; Calculate address of sample in sine table
     mov #edspage(_sine_table), w1
     mov w1, _DSRPAG
     mov #edsoffset(_sine_table), w1
     add w0, w1, w0
-    ; Read value from table
-    mov [w0], [w4++]
+    mov [w0], [w4++]            ; Read value from table
 
     ; TODO: Get envelope value and multiply before storing
 
-    ; UPDATE OSCILLATOR PHASE ACCUMULATOR
-    ; Load oscillator frequency lower word
-    mov [w2++], w1
-    ; Load accumulator lower word
-    mov [w3], w0
-    ; Add lower word of frequency to accumulator
-    add w1, w0, w0
-    ; Store accumulator lower word back
-    mov w0, [w3++]
-    ; Load oscillator frequency upper word
-    mov [w2++], w1
-    ; Load accumulator upper word
-    mov [w3], w0
-    ; Add upper word of frequency to accumulator with carry from lower word
-    addc w1, w0, w0
-    ; Store accumulator upper word
-1:  mov w0, [w3++]
+    ; Update oscillator phase accumulator
+    mov [w2++], w1              ; Load oscillator frequency lower word
+    mov [w3], w0                ; Load accumulator lower word
+    add w1, w0, w0              ; Add lower word of frequency to accumulator
+    mov w0, [w3++]              ; Store accumulator lower word back
+    mov [w2++], w1              ; Load oscillator frequency upper word
+    mov [w3], w0                ; Load accumulator upper word
+    addc w1, w0, w0             ; Add upper word of frequency with carry
+1:  mov w0, [w3++]              ; Store accumulator upper word
 
-    ; SUM OUTPUTS
-    ; Setup output and gain pointers for use with DSP prefetch
+    ; Apply gain and set oscillator outputs
     ; Gains from the mod matrix are already loaded in w10
     ; Outputs are in X memory, must be in w8 or w9
     mov #_osc_outputs, w8
@@ -149,17 +128,13 @@ _synth_run:
     mac w5*w6, A, [w8]+=2, w5, [w10]+=2, w6
     mac w5*w6, A, [w8]+=2, w5, [w10]+=2, w6
     mac w5*w6, A
-    ; Store accumulator result back with no shift
-    sac A, #0, w4
+    sac A, #0, w4 ; Store accumulator result back with no shift
 
-    ; STORE VALUE
-    ; Convert from signed to unsigned
-    mov #0x8000, w1
+    ; Store the new sample in the buffer
+    mov #0x8000, w1             ; Convert from signed to unsigned
     add w4, w1, w0
-    ; Shift right to convert from 16 bit to 12 bit
-    lsr w0, #4, w0
-    ; Copy to buffer
-    mov w0, _synth_sample
+    lsr w0, #4, w0              ; Shift right to convert from 16 bit to 12 bit
+    mov w0, _synth_sample       ; Copy to buffer
 
-    ; LOOP FOREVER
+    ; Return to the top of the loop
     bra _synth_run
