@@ -21,20 +21,19 @@ _synth_dac_ready:
 _synth_sample:
     .word 0x00
 
-; Pitch of the oscillator
+; Pitch of the oscillators
 _osc_freqs:
     .long 0x00146ECA
     .long 0x0028DD94
+    .long 0x003D4C5E
 
-; Oscillator accumulator
+; Oscillator accumulators
 _osc_accs:
-    .long 0
-    .long 0
+    .long 0, 0, 0
 
 ; Oscillator outputs
 _osc_outputs:
-    .word 0
-    .word 0
+    .word 0x0000, 0x0000, 0x0000
 
 ; ******************************************************************************
 ; Variables in Y Memory
@@ -42,10 +41,12 @@ _osc_outputs:
 
     .section yvars, ymemory
 
-; Oscillator gains
-_osc_gains:
-    .word 0x2000
-    .word 0x2000
+; Modulation matrix
+_mod_matrix:
+    .word 0x0000, 0x00FF, 0x0000
+    .word 0x0000, 0x0000, 0x00FF
+    .word 0x0000, 0x0000, 0x0000
+    .word 0x7FFF, 0x0000, 0x0000 ; Outputs
 
 ;*******************************************************************************
 ; Functions
@@ -62,7 +63,6 @@ _synth_init:
     bclr TRISE, #1
 
     return
-
 
 _synth_run:
 
@@ -81,16 +81,30 @@ _synth_run:
     mov #_osc_freqs, w2
     mov #_osc_accs, w3
     mov #_osc_outputs, w4
+    mov #_mod_matrix, w10
 
     ; START LOOP
-    do #1, 1f
+    do #2, 1f
+
+    ; CALCULATE MODULATION PHASE OFFSET
+    ; Load pointer to first oscillator output
+    mov #_osc_outputs, w8
+    ; Clear accumulator B and prefetch first mod and sample
+    clr A, [w8]+=2, w5, [w10]+=2, w6
+    ; Multiply each output sample by the corresponding modulation amount
+    mac w5*w6, A, [w8]+=2, w5, [w10]+=2, w6
+    mac w5*w6, A, [w8]+=2, w5, [w10]+=2, w6
+    mac w5*w6, A
+    ; Store vector multiplication result
+    sac A, w5
 
     ; CALCULATE RAW SAMPLE INDEX
-    ; Get lowest 11 bits of upper word to use as index in table
-    mov #0x07FF, w1
     ; Load accumulator upper word
     mov [w3 + 2], w0
-    ; Mask out unused upper bits
+    ; Add modulation phase offset
+    add w0, w5, w0
+    ; Mask out unused upper bits to get a valid index
+    mov #0x07FF, w1
     and w1, w0, w0
     ; Shift left 1 bit since each entry is two bytes
     sl w0, #1, w0
@@ -103,6 +117,8 @@ _synth_run:
     add w0, w1, w0
     ; Read value from table
     mov [w0], [w4++]
+
+    ; TODO: Get envelope value and multiply before storing
 
     ; UPDATE OSCILLATOR PHASE ACCUMULATOR
     ; Load oscillator frequency lower word
@@ -124,13 +140,13 @@ _synth_run:
 
     ; SUM OUTPUTS
     ; Setup output and gain pointers for use with DSP prefetch
+    ; Gains from the mod matrix are already loaded in w10
     ; Outputs are in X memory, must be in w8 or w9
     mov #_osc_outputs, w8
-    ; Outputs are in Y memory, must be in w10 or w11
-    mov #_osc_gains, w10
     ; Clear accumulator and prefetch first output and gain
     clr A, [w8]+=2, w5, [w10]+=2, w6
     ; Multiply output and gain and accumulate for each oscillator
+    mac w5*w6, A, [w8]+=2, w5, [w10]+=2, w6
     mac w5*w6, A, [w8]+=2, w5, [w10]+=2, w6
     mac w5*w6, A
     ; Store accumulator result back with no shift
