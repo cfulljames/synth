@@ -13,8 +13,8 @@ set(CND_CONF default)
 
 # Compiler flags (based on MPLAB generated makefiles)
 set(CMAKE_C_FLAGS "-mno-eds-warn -omf=elf \
-    -DXPRJ_default=${CND_CONF} -legacy-libc -O0 -msmart-io=1 -Wall \
-    -msfr-warn=off -std=c99 ")
+    -DXPRJ_default=${CND_CONF} -legacy-libc -O1 -msmart-io=1 -Wall \
+    -msfr-warn=off -std=c99")
 
 # Add these flags to generate assembly
 #    -fverbose-asm -Wa,-adhln \
