@@ -6,13 +6,14 @@ set(SOURCES
     audio.c
     envelope.c
     synth.s
-    sine.s
+    sine.c
+    oscillator.c
 )
 
 # Generate a sine table assembly file (sine.s)
 set(SINE_TABLE_GEN_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/gen_sine_table.py)
-add_custom_command(OUTPUT sine.s sine.h sine.inc
-    COMMAND python3 ARGS ${SINE_TABLE_GEN_SCRIPT} sine.s sine.h sine.inc
+add_custom_command(OUTPUT sine.c sine.h sine.inc
+    COMMAND python3 ARGS ${SINE_TABLE_GEN_SCRIPT} sine.c sine.h sine.inc
     DEPENDS ${SINE_TABLE_GEN_SCRIPT})
 
 # Build a static library
