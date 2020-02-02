@@ -9,6 +9,18 @@
                    displayName="Linker Files"
                    projectFiles="true">
     </logicalFolder>
+    <logicalFolder name="master" displayName="master" projectFiles="true">
+      <logicalFolder name="hal" displayName="hal" projectFiles="true">
+        <logicalFolder name="include" displayName="include" projectFiles="true">
+          <itemPath>../../src/master/hal/include/sysconfig.h</itemPath>
+          <itemPath>../../src/master/hal/include/system.h</itemPath>
+          <itemPath>../../src/master/hal/include/uart.h</itemPath>
+        </logicalFolder>
+        <itemPath>../../src/master/hal/system.c</itemPath>
+        <itemPath>../../src/master/hal/uart.c</itemPath>
+      </logicalFolder>
+      <itemPath>../../src/master/main.c</itemPath>
+    </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
@@ -19,6 +31,9 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>../../src/master</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="default" type="2">
