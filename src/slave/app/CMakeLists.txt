@@ -4,6 +4,7 @@ project(slave_app C ASM)
 # Project source files
 set(SOURCES
     audio.c
+    envelope.c
     synth.s
     sine.s
 )

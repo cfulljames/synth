@@ -6,7 +6,7 @@
 
 #define LEVEL_MAX ENVELOPE_LEVEL_MAX
 
-#define FAST_RELEASE_RATE (10 << RATE_SHIFT)
+#define FAST_RELEASE_RATE ((envelope_rate_t)10 << RATE_SHIFT)
 
 void envelope_init(envelope_t *env)
 {
@@ -30,7 +30,7 @@ static inline void update_attack(envelope_t *env)
     {
         // End of the attack stage; transition to decay.
         env->state = ENVELOPE_STATE_DECAY;
-        env->accumulator = LEVEL_MAX << RATE_SHIFT;
+        env->accumulator = (envelope_rate_t)LEVEL_MAX << RATE_SHIFT;
     }
 }
 
@@ -96,15 +96,15 @@ static inline void update_fast_release(envelope_t *env)
 __attribute__((always_inline))
 static inline void set_decay_threshold(envelope_t *env)
 {
-    uint16_t decay_level = env->decay >> ENVELOPE_RATE_SHIFT;
+    uint16_t decay_level = (envelope_rate_t)env->decay >> RATE_SHIFT;
     if (ENVELOPE_LEVEL_MAX - decay_level < env->sustain)
     {
-        env->decay_threshold = ENVELOPE_LEVEL_MAX << ENVELOPE_RATE_SHIFT;
+        env->decay_threshold = (envelope_rate_t)ENVELOPE_LEVEL_MAX << RATE_SHIFT;
     }
     else
     {
         env->decay_threshold = env->decay
-            + (env->sustain << ENVELOPE_RATE_SHIFT);
+            + ((envelope_rate_t)env->sustain << RATE_SHIFT);
     }
 }
 
@@ -112,11 +112,17 @@ void envelope_update(envelope_t *env)
 {
     switch (env->state)
     {
+        case ENVELOPE_STATE_IDLE:
+            // Do nothing.
+            break;
         case ENVELOPE_STATE_ATTACK:
             update_attack(env);
             break;
         case ENVELOPE_STATE_DECAY:
             update_decay(env);
+            break;
+        case ENVELOPE_STATE_SUSTAIN:
+            // Do nothing.
             break;
         case ENVELOPE_STATE_RELEASE:
             update_release(env);
@@ -172,7 +178,7 @@ void envelope_close_gate(envelope_t *env)
     if (ENVELOPE_STATE_FAST_RELEASE != env->state)
     {
         // Start release.
-        env->accumulator = env->level << RATE_SHIFT;
+        env->accumulator = (envelope_rate_t)env->level << RATE_SHIFT;
         env->state = ENVELOPE_STATE_RELEASE;
     }
 }
