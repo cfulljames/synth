@@ -90,22 +90,14 @@ typedef uint32_t envelope_rate_t;
 // The max value of the rate type.
 #define ENVELOPE_RATE_MAX (ENVELOPE_LEVEL_MAX << ENVELOPE_RATE_SHIFT)
 
-// The internal state of the envelope.  Should not be used externally.
-typedef enum envelope_state_e {
-    ENVELOPE_STATE_IDLE,
-    ENVELOPE_STATE_ATTACK,
-    ENVELOPE_STATE_DECAY,
-    ENVELOPE_STATE_SUSTAIN,
-    ENVELOPE_STATE_RELEASE,
-    ENVELOPE_STATE_FAST_RELEASE,
-} envelope_state_t;
+/******************************************************************************
+ * Configuration
+ ******************************************************************************/
 
-// The envelope data structure.  Do not modify this structure directly; instead,
-// use the functions below to adjust parameters.
-typedef struct envelope_s {
-
-    // The current output level of the envelope.
-    envelope_level_t level;
+// Envelope configuration.  Do not modify directly.  By separating these values
+// into a separate structure, it allows multiple envelopes to share the same
+// configuration.
+typedef struct envelope_config_s {
 
     // The configured attack rate.
     envelope_rate_t attack;
@@ -125,6 +117,69 @@ typedef struct envelope_s {
     // The level at which the envelope transitions from decay to sustain.
     envelope_rate_t decay_threshold;
 
+} envelope_config_t;
+
+/*
+ * Initialize the envelope configuration structure with default parameters.
+ *
+ * This should be called before passing the envelope config structure to any of
+ * the other functions.
+ */
+void envelope_config_init(envelope_config_t *cfg);
+
+/*
+ * Set the attack rate of the envelope.
+ *
+ * This is the amount that the level will increase with each update during the
+ * attack stage.
+ */
+void envelope_set_attack(envelope_config_t *cfg, envelope_rate_t attack);
+
+/*
+ * Set the decay rate of the envelope.
+ *
+ * This is the amount that the level will decrease with each update during the
+ * decay stage.
+ */
+void envelope_set_decay(envelope_config_t *cfg, envelope_rate_t decay);
+
+/*
+ * Set the sustain level of the envelope.
+ *
+ * This is the level at which the decay stage will stop decreasing.  Once this
+ * level is reached, it will be maintained until the gate is closed.
+ */
+void envelope_set_sustain(envelope_config_t *cfg, envelope_level_t sustain);
+
+/*
+ * Set the release rate of the envelope.
+ *
+ * This is the amount that the level will decrease with each update during the
+ * release stage.
+ */
+void envelope_set_release(envelope_config_t *cfg, envelope_rate_t release);
+
+/******************************************************************************
+ * Running
+ ******************************************************************************/
+
+// The internal state of the envelope.  Should not be used externally.
+typedef enum envelope_state_e {
+    ENVELOPE_STATE_IDLE,
+    ENVELOPE_STATE_ATTACK,
+    ENVELOPE_STATE_DECAY,
+    ENVELOPE_STATE_SUSTAIN,
+    ENVELOPE_STATE_RELEASE,
+    ENVELOPE_STATE_FAST_RELEASE,
+} envelope_state_t;
+
+// The envelope data structure.  Do not modify this structure directly; instead,
+// use the functions below to adjust parameters.
+typedef struct envelope_s {
+
+    // The current output level of the envelope.
+    envelope_level_t level;
+
     // The current state of the envelope.
     envelope_state_t state;
 
@@ -134,8 +189,10 @@ typedef struct envelope_s {
     // General purpose accumulator used for state transition timing.
     uint32_t accumulator;
 
-} envelope_t;
+    // The configuration for this envelope.
+    envelope_config_t *cfg;
 
+} envelope_t;
 
 /*
  * Initialize the envelope structure with default parameters.
@@ -143,46 +200,14 @@ typedef struct envelope_s {
  * This should be called before passing the envelope structure to any of the
  * other functions.
  */
-void envelope_init(envelope_t *env);
+void envelope_init(envelope_t *env, envelope_config_t *cfg);
 
 /*
  * Update the envelope internal state and output level.
  *
  * Normally, this should be called periodically, e.g. once per sample.
  */
-void envelope_update(envelope_t *env);
-
-/*
- * Set the attack rate of the envelope.
- *
- * This is the amount that the level will increase with each update during the
- * attack stage.
- */
-void envelope_set_attack(envelope_t *env, envelope_rate_t attack);
-
-/*
- * Set the decay rate of the envelope.
- *
- * This is the amount that the level will decrease with each update during the
- * decay stage.
- */
-void envelope_set_decay(envelope_t *env, envelope_rate_t decay);
-
-/*
- * Set the sustain level of the envelope.
- *
- * This is the level at which the decay stage will stop decreasing.  Once this
- * level is reached, it will be maintained until the gate is closed.
- */
-void envelope_set_sustain(envelope_t *env, envelope_level_t sustain);
-
-/*
- * Set the release rate of the envelope.
- *
- * This is the amount that the level will decrease with each update during the
- * release stage.
- */
-void envelope_set_release(envelope_t *env, envelope_rate_t release);
+envelope_level_t envelope_update(envelope_t *env);
 
 /*
  * Open the envelope gate.
@@ -209,6 +234,5 @@ void envelope_close_gate(envelope_t *env);
  * release rate.  This will also override a normal release.
  */
 void envelope_close_gate_fast(envelope_t *env);
-
 
 #endif // _ENVELOPE_H
