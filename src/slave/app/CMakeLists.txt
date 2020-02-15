@@ -6,6 +6,7 @@ set(SOURCES
     audio.c
     envelope.c
     synth.s
+    voice.c
     sine.c
     oscillator.c
 )
