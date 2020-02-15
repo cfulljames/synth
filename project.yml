@@ -54,6 +54,8 @@
   :plugins:
     - :ignore
     - :callback
+    - :ignore_arg
+    - :expect_any_args
   :treat_as:
     uint8:    HEX8
     uint16:   HEX16
