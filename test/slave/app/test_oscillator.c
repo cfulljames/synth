@@ -3,6 +3,7 @@
 #include "sine.h"
 
 oscillator_t m_osc;
+oscillator_config_t m_cfg;
 
 #define DEFAULT_PHASE_OFFSET (0)
 #define DEFAULT_FREQUENCY (1U << 16)
@@ -10,7 +11,8 @@ oscillator_t m_osc;
 
 void setUp(void)
 {
-    oscillator_init(&m_osc);
+    oscillator_config_init(&m_cfg);
+    oscillator_init(&m_osc, &m_cfg);
     oscillator_set_frequency(&m_osc, DEFAULT_FREQUENCY);
 }
 
@@ -112,4 +114,18 @@ void test_output_is_zero_after_reset_phase(void)
     actual = oscillator_update(&m_osc, DEFAULT_PHASE_OFFSET);
 
     TEST_ASSERT_EQUAL(0, actual);
+}
+
+/******************************************************************************
+ * Harmonic
+ ******************************************************************************/
+
+void test_harmonic_multiplies_frequency(void)
+{
+    oscillator_output_t actual;
+
+    oscillator_config_set_harmonic(&m_cfg, 4);
+    oscillator_update(&m_osc, DEFAULT_PHASE_OFFSET);
+    actual = oscillator_update(&m_osc, DEFAULT_PHASE_OFFSET);
+    TEST_ASSERT_EQUAL(sine_table[4], actual);
 }

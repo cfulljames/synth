@@ -1,3 +1,11 @@
+/*
+ * Oscillator
+ *
+ * The oscillator generates sine waves of a specified frequency.  A harmonic can
+ * also be configured to allow for harmonic relationships between oscillators
+ * without requiring a separate frequency to be supplied for each.
+ */
+
 #ifndef _OSCILLATOR_H
 #define _OSCILLATOR_H
 
@@ -9,16 +17,47 @@ typedef uint32_t oscillator_freq_t;
 // Type for representing the oscillator output signal.
 typedef int16_t oscillator_output_t;
 
+/******************************************************************************
+ * Configuration
+ ******************************************************************************/
+
+// Oscillator configuration that can be shared between multiple oscillators.  Do
+// not modify directly.
+typedef struct oscillator_config_s {
+    uint8_t harmonic;
+} oscillator_config_t;
+
+/*
+ * Initialize the oscillator configuration.
+ *
+ * This must be called before using the configuration with an oscillator.  This
+ * configuration structure can be shared between multiple oscillators.
+ */
+void oscillator_config_init(oscillator_config_t *cfg);
+
+/*
+ * Set the oscillator harmonic.
+ *
+ * This allows for easy configuration of oscillators with different harmonics of
+ * the same base frequency.
+ */
+void oscillator_config_set_harmonic(oscillator_config_t *cfg, uint8_t harmonic);
+
+/******************************************************************************
+ * Running
+ ******************************************************************************/
+
 // Oscillator internal state.  Do not modify this structure directly.
 typedef struct oscillator_s {
     oscillator_freq_t freq;
     oscillator_freq_t accumulator;
+    oscillator_config_t *config;
 } oscillator_t;
 
 /*
  * Initialize the oscillator.
  */
-void oscillator_init(oscillator_t *osc);
+void oscillator_init(oscillator_t *osc, oscillator_config_t *cfg);
 
 /*
  * Update the oscillator and get the next output.
