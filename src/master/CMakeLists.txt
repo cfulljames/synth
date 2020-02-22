@@ -7,6 +7,7 @@ project(synth_master C ASM)
 # Project source files
 set(SOURCES
     main.c
+    notes.c
 )
 
 # Include the slave project as part of the master build
@@ -32,6 +33,16 @@ target_link_libraries(${PROJECT_NAME}.elf master_hal)
 add_custom_target(${PROJECT_NAME}.hex ALL DEPENDS ${PROJECT_NAME}.elf)
 add_custom_command(TARGET ${PROJECT_NAME}.hex
     COMMAND ${MP_BIN2ELF} ARGS ${PROJECT_NAME}.elf)
+
+# Generate a note frequency table C file and header
+set(NOTE_TABLE_GEN_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/gen_freq_table.py)
+add_custom_command(OUTPUT notes.c notes.h
+    COMMAND python3 ARGS ${NOTE_TABLE_GEN_SCRIPT} notes.c notes.h
+    DEPENDS ${NOTE_TABLE_GEN_SCRIPT})
+
+# Add generated header file location
+target_include_directories(${PROJECT_NAME}.elf
+    PRIVATE include ${CMAKE_CURRENT_BINARY_DIR})
 
 # Generate MDB script for flashing
 set(MDB_FLASH_SCRIPT ${PROJECT_NAME}_mdb_flash.txt)

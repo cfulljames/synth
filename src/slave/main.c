@@ -15,6 +15,9 @@ int main(void)
     audio_init();
     synth_init();
 
+    // Enable FIFO
+    SI1FIFOCSbits.SRFEN = 1;
+
     printf("Slave initialization complete.\n");
 
     audio_run();

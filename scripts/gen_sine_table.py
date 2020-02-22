@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Generate a sine table for use in the synth engine.
 
 This will generate an assembly file containing the definition of the sine table.

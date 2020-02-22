@@ -10,7 +10,7 @@
 
 // Set to 1 to connect the Slave core to the debug UART, or 0 to connect the
 // Master core.
-#define SLAVE_DEBUG_UART 0
+#define SLAVE_DEBUG_UART 1
 
 #pragma config BWRP = OFF               // Boot Segment Write-Protect bit (Boot Segment may be written)
 #pragma config BSS = DISABLED           // Boot Segment Code-Protect Level bits (No Protection (other than BWRP))

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Generate the MDB flash script.
 
 MDB always runs from the users home directory (at least on macOS), so giving it

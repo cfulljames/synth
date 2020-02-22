@@ -71,5 +71,8 @@ static void pins_init(void)
 {
     // Debug UART
     _RP59R = PINMUX_OUT_UART1_TX;
+
+    // Assign UART RX to RP58: Pin C10
     _U1RXR = 58;
+    TRISCbits.TRISC10 = 1;
 }
