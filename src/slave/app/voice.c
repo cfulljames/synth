@@ -42,6 +42,9 @@ voice_output_t voice_update(voice_t *voice)
     voice->envelopes_active = 0;
     for (uint8_t i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
     {
+
+#ifdef TEST // Use C implementation for testing.
+
         int32_t phase_offset_accumulator = 0;
         int32_t offset;
         for (uint8_t j = 0; j < VOICE_OPERATORS_PER_VOICE; j ++)
@@ -51,6 +54,36 @@ voice_output_t voice_update(voice_t *voice)
         }
 
         int16_t phase_offset = phase_offset_accumulator >> 15;
+
+#else // Use asm implementation when building for target.
+
+        int16_t phase_offset;
+        int16_t *mod = voice->mod_matrix[i];
+
+        __asm__(
+                // Clear accumulator A and prefetch first output and mod value.
+                "clr A, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
+
+                // Multiply and accumulate outputs and mods
+                "mac w4*w5, A, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
+                "mac w4*w5, A, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
+                "mac w4*w5, A\n"
+
+                // Store result in phase_offset
+                "sac A, #0, %[phase_offset]\n"
+
+                // Outputs
+                : [phase_offset] "=r" (phase_offset)
+
+                // Inputs
+                : [out] "x" (voice->outputs), [mod] "y" (mod)
+
+                // Clobbers
+                : "A", "w4", "w5"
+           );
+
+#endif
+
         envelope_level_t level = envelope_update(&voice->envelopes[i]) << 5;
         oscillator_output_t out = oscillator_update(&voice->oscillators[i], phase_offset);
         voice->outputs[i] = ((int32_t)level * out) >> 15;

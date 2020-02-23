@@ -30,6 +30,16 @@ void audio_init(void)
     // Enable the sample timer
     CCP1CON1Lbits.CCPON = 1;
 }
+__attribute__((space(ymemory)))
+int16_t mod_matrix[4][3] = {
+    {0x0010, 0x02FF, 0x0040},
+    {0x0000, 0x0000, 0x04FF},
+    {0x0000, 0x0000, 0x0000},
+    {0x7FFF, 0x0000, 0x0000},
+};
+
+__attribute__((space(xmemory)))
+voice_t voice;
 
 void audio_run(void)
 {
@@ -49,16 +59,7 @@ void audio_run(void)
         envelope_set_sustain(&env_cfg[i], 1023);
     }
 
-    int16_t mod_matrix[4][3] = {
-        {0x0010, 0x02FF, 0x0040},
-        {0x0000, 0x0000, 0x04FF},
-        {0x0000, 0x0000, 0x0000},
-        {0x7FFF, 0x0000, 0x0000},
-    };
-
-    voice_t voice;
     voice_init(&voice, env_cfg, osc_cfg, mod_matrix);
-    //voice_start(&voice, 0x146ECA);
 
     TRISEbits.TRISE1 = 0;
 
