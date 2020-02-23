@@ -35,8 +35,9 @@ typedef struct voice_s {
     int16_t (*mod_matrix)[VOICE_OPERATORS_PER_VOICE];
 
     // Outputs from the previous update, used to calculate modulation inputs on
-    // the next update.
-    oscillator_output_t outputs[VOICE_OPERATORS_PER_VOICE];
+    // the next update.  The final voice output may be stored in the last space
+    // for algorithm efficiency.
+    oscillator_output_t outputs[VOICE_OPERATORS_PER_VOICE + 1];
 
     // When a note is started before the previous one had stopped, this holds
     // the new note frequency until the previous note finishes.

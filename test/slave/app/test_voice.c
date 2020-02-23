@@ -84,6 +84,10 @@ void test_update_after_start_updates_components(void)
     for (int i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
     {
         envelope_update_ExpectAnyArgsAndReturn(0);
+    }
+
+    for (int i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
+    {
         oscillator_update_ExpectAndReturn(NULL, 0, 0);
         oscillator_update_IgnoreArg_osc();
     }
@@ -99,6 +103,10 @@ void test_update_after_start_returns_correct_value(void)
     for (int i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
     {
         envelope_update_ExpectAnyArgsAndReturn(0x0200); // Half level
+    }
+
+    for (int i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
+    {
         oscillator_update_ExpectAndReturn(NULL, 0, 0x4000);
         oscillator_update_IgnoreArg_osc();
     }
@@ -117,7 +125,10 @@ void test_update_applies_correct_phase_offset(void)
     for (int i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
     {
         envelope_update_ExpectAnyArgsAndReturn(0x0200); // Half level
+    }
 
+    for (int i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
+    {
         // All phase offsets are zero at start
         oscillator_update_ExpectAndReturn(NULL, 0, 0x4000);
         oscillator_update_IgnoreArg_osc();
@@ -127,19 +138,19 @@ void test_update_applies_correct_phase_offset(void)
     // Second sample (osc 0)
     envelope_update_ExpectAnyArgsAndReturn(0x0200); // Half level
 
+    // Second sample (osc 1)
+    envelope_update_ExpectAnyArgsAndReturn(0x0200); // Half level
+
+    // Second sample (osc 2)
+    envelope_update_ExpectAnyArgsAndReturn(0x0200); // Half level
+
     // Osc 0 is modulated by osc 1
     oscillator_update_ExpectAndReturn(NULL, 0x1FFF, 0x4000);
     oscillator_update_IgnoreArg_osc();
 
-    // Second sample (osc 1)
-    envelope_update_ExpectAnyArgsAndReturn(0x0200); // Half level
-
     // Osc 1 is modulated by osc 2
     oscillator_update_ExpectAndReturn(NULL, 0x1FFF, 0x4000);
     oscillator_update_IgnoreArg_osc();
-
-    // Second sample (osc 2)
-    envelope_update_ExpectAnyArgsAndReturn(0x0200); // Half level
 
     // Osc 2 is not modulated
     oscillator_update_ExpectAndReturn(NULL, 0x0000, 0x4000);
