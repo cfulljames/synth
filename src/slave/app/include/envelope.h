@@ -207,7 +207,17 @@ void envelope_init(envelope_t *env, envelope_config_t *cfg);
  *
  * Normally, this should be called periodically, e.g. once per sample.
  */
-envelope_level_t envelope_update(envelope_t *env);
+#ifdef TEST
+#define STATIC_INLINE
+#else
+#define STATIC_INLINE __attribute__((always_inline)) static inline
+#endif
+STATIC_INLINE envelope_level_t envelope_update(envelope_t *env);
+
+#ifndef TEST
+// The function is defined in a header to allow it to be inlined.
+#include "envelope_update.h"
+#endif
 
 /*
  * Open the envelope gate.

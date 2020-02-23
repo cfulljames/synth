@@ -67,7 +67,17 @@ void oscillator_init(oscillator_t *osc, oscillator_config_t *cfg);
  * the value is larger than the sine table length, it will wrap around; this
  * allows for very large phase offsets to be given.
  */
-oscillator_output_t oscillator_update(oscillator_t *osc, int16_t phase);
+#ifdef TEST
+#define STATIC_INLINE
+#else
+#define STATIC_INLINE __attribute__((always_inline)) static inline
+#endif
+STATIC_INLINE oscillator_output_t oscillator_update(oscillator_t *osc, int16_t phase);
+
+#ifndef TEST
+// The function is defined in a header to allow it to be inlined.
+#include "oscillator_update.h"
+#endif
 
 /*
  * Set the frequency of the oscillator.
