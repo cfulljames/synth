@@ -17,19 +17,27 @@
           <logicalFolder name="include" displayName="include" projectFiles="true">
             <itemPath>../../src/slave/app/include/audio.h</itemPath>
             <itemPath>../../src/slave/app/include/synth.h</itemPath>
+            <itemPath>../../src/slave/app/include/envelope.h</itemPath>
+            <itemPath>../../src/slave/app/include/oscillator.h</itemPath>
+            <itemPath>../../src/slave/app/include/voice.h</itemPath>
           </logicalFolder>
           <itemPath>../../src/slave/app/audio.c</itemPath>
           <itemPath>../../src/slave/app/synth.s</itemPath>
+          <itemPath>../../src/slave/app/envelope.c</itemPath>
+          <itemPath>../../src/slave/app/oscillator.c</itemPath>
+          <itemPath>../../src/slave/app/voice.c</itemPath>
         </logicalFolder>
         <logicalFolder name="hal" displayName="hal" projectFiles="true">
           <logicalFolder name="include" displayName="include" projectFiles="true">
             <itemPath>../../src/slave/hal/include/dac.h</itemPath>
             <itemPath>../../src/slave/hal/include/system.h</itemPath>
             <itemPath>../../src/slave/hal/include/uart.h</itemPath>
+            <itemPath>../../src/slave/hal/include/msi.h</itemPath>
           </logicalFolder>
           <itemPath>../../src/slave/hal/dac.c</itemPath>
           <itemPath>../../src/slave/hal/system.c</itemPath>
           <itemPath>../../src/slave/hal/uart.c</itemPath>
+          <itemPath>../../src/slave/hal/msi.c</itemPath>
         </logicalFolder>
         <itemPath>../../src/slave/main.c</itemPath>
       </logicalFolder>
