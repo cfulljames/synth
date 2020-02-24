@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 // The number of operators used by each voice.
-#define VOICE_OPERATORS_PER_VOICE (3)
+#define VOICE_OPERATORS_PER_VOICE (4)
 
 // Type of the samples returned by the update function.
 typedef int16_t voice_output_t;

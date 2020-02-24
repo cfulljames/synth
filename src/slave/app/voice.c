@@ -75,23 +75,33 @@ voice_output_t voice_update(voice_t *voice)
             // Clear accumulator A and prefetch first output and mod value.
             "clr        A, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
             "mac w4*w5, A, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
-            "mac w4*w5, A, [%[out]]-=4, w4, [%[mod]]+=2, w5\n"
+            "mac w4*w5, A, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
+            "mac w4*w5, A, [%[out]]-=6, w4, [%[mod]]+=2, w5\n"
             "mac w4*w5, A\n"
 
             // Start next operator and writeback previous one
             "clr        B, [%[out]]+=2, w4, [%[mod]]+=2, w5, [%[phase_offsets]]+=2\n"
             "mac w4*w5, B, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
-            "mac w4*w5, B, [%[out]]-=4, w4, [%[mod]]+=2, w5\n"
+            "mac w4*w5, B, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
+            "mac w4*w5, B, [%[out]]-=6, w4, [%[mod]]+=2, w5\n"
             "mac w4*w5, B\n"
 
             // Start next operator and writeback previous one
             "clr        A, [%[out]]+=2, w4, [%[mod]]+=2, w5, [%[phase_offsets]]+=2\n"
             "mac w4*w5, A, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
-            "mac w4*w5, A, [%[out]]-=4, w4, [%[mod]]+=2, w5\n"
+            "mac w4*w5, A, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
+            "mac w4*w5, A, [%[out]]-=6, w4, [%[mod]]+=2, w5\n"
             "mac w4*w5, A\n"
 
+            // Start next operator and writeback previous one
+            "clr        B, [%[out]]+=2, w4, [%[mod]]+=2, w5, [%[phase_offsets]]+=2\n"
+            "mac w4*w5, B, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
+            "mac w4*w5, B, [%[out]]+=2, w4, [%[mod]]+=2, w5\n"
+            "mac w4*w5, B, [%[out]]-=6, w4, [%[mod]]+=2, w5\n"
+            "mac w4*w5, B\n"
+
             // Store result from last operator
-            "sac A, #0, [%[phase_offsets]]\n"
+            "sac        A, #0,                               [%[phase_offsets]]\n"
 
             // Outputs
             :   // None
@@ -123,30 +133,33 @@ voice_output_t voice_update(voice_t *voice)
     env_levels[0] = envelope_update(&voice->envelopes[0]) << 5;
     env_levels[1] = envelope_update(&voice->envelopes[1]) << 5;
     env_levels[2] = envelope_update(&voice->envelopes[2]) << 5;
+    env_levels[3] = envelope_update(&voice->envelopes[3]) << 5;
 
     // Calculate oscillator outputs (unrolled)
     osc_outputs[0] = oscillator_update(&voice->oscillators[0], phase_offsets[0]);
     osc_outputs[1] = oscillator_update(&voice->oscillators[1], phase_offsets[1]);
     osc_outputs[2] = oscillator_update(&voice->oscillators[2], phase_offsets[2]);
+    osc_outputs[3] = oscillator_update(&voice->oscillators[3], phase_offsets[3]);
 
     // OR all of the envelope levels together so that this value is only
     // false when all envelope levels are zero.
-    voice->envelopes_active = env_levels[0] | env_levels[1] | env_levels[2];
+    voice->envelopes_active = env_levels[0] | env_levels[1] | env_levels[2] | env_levels[3];
 
     // Calculate operator outputs and final voice output
+
+    // Output levels are in the last row of the modulation matrix.
+    int16_t *output_levels = voice->mod_matrix[VOICE_OPERATORS_PER_VOICE];
+
 #ifdef TEST
 
     // This is functionally equivalent to the assembly below.
     for (uint8_t i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
     {
         voice->outputs[i] = ((int32_t)env_levels[i] * osc_outputs[i]) >> 15;
-        voice_output += ((int32_t)voice->outputs[i] * voice->mod_matrix[3][i]) >> 15;
+        voice_output += ((int32_t)voice->outputs[i] * output_levels[i]) >> 15;
     }
 
 #else
-
-    // Output levels are in the last row of the modulation matrix.
-    int16_t *output_levels = voice->mod_matrix[VOICE_OPERATORS_PER_VOICE];
 
     __asm__(
 
@@ -168,6 +181,8 @@ voice_output_t voice_update(voice_t *voice)
             "mpy w4*w5, A                                               \n"
             "clr        B, [%[env]]+=2, w4, [%[osc]]+=2, w5, [%[out]]+=2\n"
             "mpy w4*w5, B                                               \n"
+            "clr        B, [%[env]]+=2, w4, [%[osc]]+=2, w5, [%[out]]+=2\n"
+            "mpy w4*w5, B                                               \n"
             "clr        A, [%[env]]+=2, w4, [%[osc]]+=2, w5, [%[out]]+=2\n"
             "mpy w4*w5, A                                               \n"
 
@@ -181,6 +196,7 @@ voice_output_t voice_update(voice_t *voice)
             // Writeback last operator output while setting up accumulator and
             // prefetches.
             "clr        B, [w9]+=2,     w4, [%[mod]]+=2, w5, [%[out]]+=2\n"
+            "mac w4*w5, B, [w9]+=2,     w4, [%[mod]]+=2, w5             \n"
             "mac w4*w5, B, [w9]+=2,     w4, [%[mod]]+=2, w5             \n"
             "mac w4*w5, B, [w9],        w4, [%[mod]],    w5             \n"
             "mac w4*w5, B\n"

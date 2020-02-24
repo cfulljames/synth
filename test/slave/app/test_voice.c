@@ -15,10 +15,11 @@ oscillator_config_t m_osc_configs[VOICE_OPERATORS_PER_VOICE];
 voice_t m_voice;
 
 int16_t m_mod_matrix[][VOICE_OPERATORS_PER_VOICE] = {
-    {0x0000, 0x7FFF, 0x0000},
-    {0x0000, 0x0000, 0x7FFF},
-    {0x0000, 0x0000, 0x0000},
-    {0x7FFF, 0x7FFF, 0x7FFF},
+    {0x0000, 0x7FFF, 0x0000, 0x0000},
+    {0x0000, 0x0000, 0x7FFF, 0x0000},
+    {0x0000, 0x0000, 0x0000, 0x7FFF},
+    {0x0000, 0x0000, 0x0000, 0x0000},
+    {0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF},
 };
 
 void setUp(void)
@@ -113,7 +114,7 @@ void test_update_after_start_returns_correct_value(void)
 
     actual = voice_update(&m_voice);
 
-    TEST_ASSERT_EQUAL_HEX(0x5FFD, actual);
+    TEST_ASSERT_EQUAL_HEX(0x7FFC, actual);
 }
 
 void test_update_applies_correct_phase_offset(void)
@@ -144,6 +145,9 @@ void test_update_applies_correct_phase_offset(void)
     // Second sample (osc 2)
     envelope_update_ExpectAnyArgsAndReturn(0x0200); // Half level
 
+    // Second sample (osc 3)
+    envelope_update_ExpectAnyArgsAndReturn(0x0200); // Half level
+
     // Osc 0 is modulated by osc 1
     oscillator_update_ExpectAndReturn(NULL, 0x1FFF, 0x4000);
     oscillator_update_IgnoreArg_osc();
@@ -152,7 +156,11 @@ void test_update_applies_correct_phase_offset(void)
     oscillator_update_ExpectAndReturn(NULL, 0x1FFF, 0x4000);
     oscillator_update_IgnoreArg_osc();
 
-    // Osc 2 is not modulated
+    // Osc 2 is modulated by osc 3
+    oscillator_update_ExpectAndReturn(NULL, 0x1FFF, 0x4000);
+    oscillator_update_IgnoreArg_osc();
+
+    // Osc 3 is not modulated
     oscillator_update_ExpectAndReturn(NULL, 0x0000, 0x4000);
     oscillator_update_IgnoreArg_osc();
 

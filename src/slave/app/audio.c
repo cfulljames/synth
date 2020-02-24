@@ -31,11 +31,12 @@ void audio_init(void)
     CCP1CON1Lbits.CCPON = 1;
 }
 __attribute__((space(ymemory)))
-int16_t mod_matrix[4][3] = {
-    {0x0010, 0x02FF, 0x0040},
-    {0x0000, 0x0000, 0x04FF},
-    {0x0000, 0x0000, 0x0000},
-    {0x7FFF, 0x0000, 0x0000},
+int16_t mod_matrix[VOICE_OPERATORS_PER_VOICE+1][VOICE_OPERATORS_PER_VOICE] = {
+    {0x0000, 0x0100, 0x0000, 0x0000},
+    {0x0000, 0x0000, 0x0100, 0x0000},
+    {0x0000, 0x0000, 0x0000, 0x0100},
+    {0x0000, 0x0000, 0x0000, 0x0100},
+    {0x2000, 0x2000, 0x2000, 0x2000},
 };
 
 __attribute__((space(xmemory)))
@@ -43,19 +44,19 @@ voice_t voice;
 
 void audio_run(void)
 {
-    oscillator_config_t osc_cfg[3];
-    for (int8_t i = 0; i < 3; i ++)
+    oscillator_config_t osc_cfg[VOICE_OPERATORS_PER_VOICE];
+    for (int8_t i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
     {
         oscillator_config_init(&osc_cfg[i]);
-        oscillator_config_set_harmonic(&osc_cfg[i], i*2);
+        oscillator_config_set_harmonic(&osc_cfg[i], 1);
     }
 
-    envelope_config_t env_cfg[3];
-    for (int8_t i = 0; i < 3; i ++)
+    envelope_config_t env_cfg[VOICE_OPERATORS_PER_VOICE];
+    for (int8_t i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
     {
         envelope_config_init(&env_cfg[i]);
-        envelope_set_attack(&env_cfg[i], 0x00400000);
-        envelope_set_release(&env_cfg[i], 0x00040000);
+        envelope_set_attack(&env_cfg[i], 0x00100000);
+        envelope_set_release(&env_cfg[i], 0x00010000);
         envelope_set_sustain(&env_cfg[i], 1023);
     }
 
@@ -111,7 +112,7 @@ void audio_run(void)
         PORTEbits.RE1 = 1;
 
         synth_sample = (sample + 0x8000) >> 4;
-        synth_dac_ready = false;
+        synth_dac_ready = 0;
     }
 }
 
