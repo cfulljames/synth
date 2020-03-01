@@ -20,6 +20,9 @@ add_custom_command(OUTPUT sine.c sine.h sine.inc
 # Build a static library
 add_library(${PROJECT_NAME} ${SOURCES})
 
+# Add common header files
+target_include_directories(${PROJECT_NAME} PRIVATE ../../common/include)
+
 # Provide header files in include directory and generated header in binary dir
 target_include_directories(${PROJECT_NAME}
     PUBLIC include ${CMAKE_CURRENT_BINARY_DIR})

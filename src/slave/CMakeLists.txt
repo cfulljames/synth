@@ -40,6 +40,9 @@ add_custom_command(TARGET ${PROJECT_NAME}.hex
 # Add the subdirectory libraries
 target_link_libraries(${PROJECT_NAME}.elf slave_hal slave_app)
 
+# Add common header files
+target_include_directories(${PROJECT_NAME}.elf PRIVATE ../common/include)
+
 # Generate an assembly image file (and header) from ELF output
 add_custom_command(OUTPUT ${PROJECT_NAME}.s
     COMMAND ${MP_BIN2ELF} ARGS --image ${PROJECT_NAME} ${PROJECT_NAME}.elf

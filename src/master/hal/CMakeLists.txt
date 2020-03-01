@@ -15,3 +15,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC include)
 
 # Link the slave core image library
 target_link_libraries(${PROJECT_NAME} synth_slave)
+
+# Add common header files
+target_include_directories(${PROJECT_NAME} PRIVATE ../../common/include)
