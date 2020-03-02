@@ -9,6 +9,7 @@ set(SOURCES
     voice.c
     sine.c
     oscillator.c
+    cmd_parser.c
 )
 
 # Generate a sine table assembly file (sine.s)

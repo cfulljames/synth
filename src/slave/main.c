@@ -17,7 +17,6 @@ int main(void)
 
     // Application initialization
     audio_init();
-    synth_init();
 
     printf("Slave initialization complete.\n");
 

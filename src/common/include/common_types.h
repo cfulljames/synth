@@ -14,7 +14,7 @@
  */
 #ifdef TEST
 // Function is extern during testing to allow mocking.
-#define INLINE_ON_TARGET extern
+#define INLINE_ON_TARGET
 #else
 // Function is static inline in production for speed optimization.
 #define INLINE_ON_TARGET __attribute__((always_inline)) static inline
