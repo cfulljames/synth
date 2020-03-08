@@ -83,7 +83,7 @@
             <saddress></saddress>
           </sproject>
           <score>
-            <scdebug>true</scdebug>
+            <scdebug>false</scdebug>
             <scname>S1</scname>
           </score>
         </subordinates>

@@ -8,6 +8,7 @@ project(synth_master C ASM)
 set(SOURCES
     main.c
     notes.c
+    envtable.c
 )
 
 # Include the slave project as part of the master build
@@ -40,9 +41,15 @@ add_custom_command(OUTPUT notes.c notes.h
     COMMAND python3 ARGS ${NOTE_TABLE_GEN_SCRIPT} notes.c notes.h
     DEPENDS ${NOTE_TABLE_GEN_SCRIPT})
 
+# Generate a envelope rate table C file and header
+set(ENV_TABLE_GEN_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/gen_env_table.py)
+add_custom_command(OUTPUT envtable.c envtable.h
+    COMMAND python3 ARGS ${ENV_TABLE_GEN_SCRIPT} envtable.c envtable.h
+    DEPENDS ${ENV_TABLE_GEN_SCRIPT})
+
 # Add generated header file location
 target_include_directories(${PROJECT_NAME}.elf
-    PRIVATE include ${CMAKE_CURRENT_BINARY_DIR})
+    PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ../common/include)
 
 # Generate MDB script for flashing
 set(MDB_FLASH_SCRIPT ${PROJECT_NAME}_mdb_flash.txt)

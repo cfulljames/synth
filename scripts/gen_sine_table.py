@@ -2,7 +2,7 @@
 """Generate a sine table for use in the synth engine.
 
 This will generate an assembly file containing the definition of the sine table.
-This will have the label "_sine_table" and be stored in the program space.
+This will have the name "sine_table" and be stored in the program space.
 
 Usage:
     python gen_sine_table.py <c file> <h file> <inc file>
@@ -30,7 +30,7 @@ for i in range(SINE_TABLE_LENGTH):
 
 # Write values to file
 with open(sys.argv[1], 'w') as c_file:
-    c_file.write('#include "sine.h"\n')
+    c_file.write('#include "{}"\n'.format(sys.argv[2]))
     c_file.write('__attribute__((space(psv)))\n')
     c_file.write('const int16_t sine_table[] = {\n');
 

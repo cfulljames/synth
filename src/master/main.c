@@ -8,8 +8,14 @@
 // Generated header containing note_freqs table declaration.
 #include "notes.h"
 
+// Generated header containing envelope rate table declaration.
+#include "envtable.h"
+
+#include "common_cmd.h"
+
 #include <xc.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 int main(void)
 {
@@ -36,11 +42,14 @@ int main(void)
     return 0;
 }
 
+
 // TODO: Remove this and replace with proper MSI implementation
 __attribute__((__interrupt__, auto_psv))
 void _U1RXInterrupt(void)
 {
     static uint8_t event_bytes = 0;
+    static common_cmd_t cmd[3];
+    static bool cc = false;
 
     // Clear interrupt flag.
     _U1RXIF = 0;
@@ -54,24 +63,151 @@ void _U1RXInterrupt(void)
         {
             // Start of new MIDI event.
             event_bytes = 0;
+            cmd[0].word_type = COMMON_CMD_WORD_TYPE_CMD;
+            cmd[1].word_type = COMMON_CMD_WORD_TYPE_DATA;
+            cmd[2].word_type = COMMON_CMD_WORD_TYPE_DATA;
 
-            // Forward command byte as-is
-            MWSRFDATA = rxbyte;
+            // Set command channel from MIDI channel.
+            cmd[0].channel = rxbyte & 0x0F;
+
+            cc = false;
+
+            if ((rxbyte & 0xF0) == 0x90)
+            {
+                // Note on event.
+                cmd[0].type = COMMON_CMD_TYPE_VOICE;
+                cmd[0].command = COMMON_CMD_VOICE_START_NOTE;
+            }
+            else if ((rxbyte & 0xF0) == 0x80)
+            {
+                // Note off event.
+                cmd[0].type = COMMON_CMD_TYPE_VOICE;
+                cmd[0].command = COMMON_CMD_VOICE_RELEASE;
+            }
+            else if ((rxbyte & 0xF0) == 0xB0)
+            {
+                // Control change event.
+                cc = true;
+            }
         }
         else
         {
-            uint16_t freq_word;
+            uint32_t data = 0;
 
             // Continuing previous event.
-            switch(event_bytes++)
+            switch (event_bytes++)
             {
                 case 0:
-                    // First data byte - note number. Write frequency to slave.
-                    freq_word = (uint16_t)note_freqs[rxbyte];
-                    MWSRFDATA = freq_word;
-                    freq_word = (uint16_t)(note_freqs[rxbyte] >> 16);
-                    MWSRFDATA = freq_word;
+                    if (cc)
+                    {
+                        // First byte is CC number.
+                        switch (rxbyte)
+                        {
+                            case 1:
+                                cmd[0].type = COMMON_CMD_TYPE_OPERATOR;
+                                cmd[0].command = COMMON_CMD_OPERATOR_SET_ATTACK;
+                                break;
+                            case 2:
+                                cmd[0].type = COMMON_CMD_TYPE_OPERATOR;
+                                cmd[0].command = COMMON_CMD_OPERATOR_SET_DECAY;
+                                break;
+                            case 3:
+                                cmd[0].type = COMMON_CMD_TYPE_OPERATOR;
+                                cmd[0].command = COMMON_CMD_OPERATOR_SET_SUSTAIN;
+                                break;
+                            case 4:
+                                cmd[0].type = COMMON_CMD_TYPE_OPERATOR;
+                                cmd[0].command = COMMON_CMD_OPERATOR_SET_RELEASE;
+                                break;
+                            case 5:
+                                cmd[0].type = COMMON_CMD_TYPE_MODULATION;
+                                cmd[0].command = COMMON_CMD_MODULATION_SET;
+                                break;
+                            case 8:
+                                cmd[0].type = COMMON_CMD_TYPE_OPERATOR;
+                                cmd[0].command = COMMON_CMD_OPERATOR_SET_OUTPUT;
+                                break;
+                            case 9:
+                                cmd[0].type = COMMON_CMD_TYPE_OPERATOR;
+                                cmd[0].command = COMMON_CMD_OPERATOR_SET_HARMONIC;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // First data byte - note number.
+                        data = note_freqs[rxbyte];
+                        cmd[0].data_msb = data >> 30;
+                        cmd[1].data = (data >> 15) & 0x7FFF;
+                        cmd[2].data = data & 0x7FFF;
+
+                        for (uint8_t i = 0; i < COMMON_CMD_NUM_WORDS; i ++)
+                        {
+                            // Wait for space to become available in the FIFO.
+                            while (_WFFULL);
+
+                            // Write next word to FIFO.
+                            MWSRFDATA = cmd[i].value;
+                        }
+                    }
                     break;
+                case 1:
+                    if (cc)
+                    {
+                        if (cmd[0].type == COMMON_CMD_TYPE_OPERATOR)
+                        {
+                            switch (cmd[0].command)
+                            {
+                                case COMMON_CMD_OPERATOR_SET_ATTACK:
+                                case COMMON_CMD_OPERATOR_SET_DECAY:
+                                case COMMON_CMD_OPERATOR_SET_RELEASE:
+                                    data = env_table[rxbyte];
+                                    break;
+                                case COMMON_CMD_OPERATOR_SET_SUSTAIN:
+                                    data = (uint16_t)rxbyte << 3;
+                                    break;
+                                case COMMON_CMD_OPERATOR_SET_HARMONIC:
+                                    data = (rxbyte >> 4) + 1;
+                                    break;
+                                case COMMON_CMD_OPERATOR_SET_OUTPUT:
+                                    data = (uint16_t)rxbyte << 7;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        else if (cmd[0].type == COMMON_CMD_TYPE_MODULATION)
+                        {
+                            switch (cmd[0].command)
+                            {
+                                case COMMON_CMD_MODULATION_SET:
+                                    data = (uint16_t)rxbyte << 3;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        cmd[0].data_msb = data >> 30;
+                        cmd[1].data = (data >> 15) & 0x7FFF;
+                        cmd[2].data = data & 0x7FFF;
+
+                        for (uint8_t i = 0; i < COMMON_CMD_NUM_WORDS; i ++)
+                        {
+                            // Wait for space to become available in the FIFO.
+                            while (_WFFULL);
+
+                            // Write next word to FIFO.
+                            MWSRFDATA = cmd[i].value;
+                        }
+                    }
+                    else
+                    {
+                        // Do nothing.
+                    }
+                    break;
+
                 default:
                     // Do nothing.
                     break;
