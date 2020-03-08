@@ -42,14 +42,18 @@ int main(void)
     return 0;
 }
 
+#define NUM_VOICES (6U)
+
 
 // TODO: Remove this and replace with proper MSI implementation
 __attribute__((__interrupt__, auto_psv))
 void _U1RXInterrupt(void)
 {
+    static int8_t voice_notes[NUM_VOICES];
     static uint8_t event_bytes = 0;
     static common_cmd_t cmd[3];
     static bool cc = false;
+    static uint8_t voice = 0;
 
     // Clear interrupt flag.
     _U1RXIF = 0;
@@ -77,6 +81,7 @@ void _U1RXInterrupt(void)
                 // Note on event.
                 cmd[0].type = COMMON_CMD_TYPE_VOICE;
                 cmd[0].command = COMMON_CMD_VOICE_START_NOTE;
+                cmd[0].channel = voice;
             }
             else if ((rxbyte & 0xF0) == 0x80)
             {
@@ -138,10 +143,41 @@ void _U1RXInterrupt(void)
                     else
                     {
                         // First data byte - note number.
-                        data = note_freqs[rxbyte];
-                        cmd[0].data_msb = data >> 30;
-                        cmd[1].data = (data >> 15) & 0x7FFF;
-                        cmd[2].data = data & 0x7FFF;
+                        if (cmd[0].command == COMMON_CMD_VOICE_RELEASE)
+                        {
+                            // Note off.
+
+                            // Find voice playing this note.
+                            bool found = false;
+                            for (int8_t i = 0; i < NUM_VOICES; i ++)
+                            {
+                                if (voice_notes[i] == rxbyte)
+                                {
+                                    cmd[0].channel = i;
+                                    voice_notes[i] = -1;
+                                    found = true;
+                                }
+                            }
+
+                            if (!found)
+                            {
+                                // No voice playing this note.
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            // Note On
+                            voice_notes[voice] = rxbyte;
+                            data = note_freqs[rxbyte];
+                            cmd[0].data_msb = data >> 30;
+                            cmd[1].data = (data >> 15) & 0x7FFF;
+                            cmd[2].data = data & 0x7FFF;
+                            if (++voice >= NUM_VOICES)
+                            {
+                                voice = 0;
+                            }
+                        }
 
                         for (uint8_t i = 0; i < COMMON_CMD_NUM_WORDS; i ++)
                         {

@@ -41,8 +41,10 @@ int16_t mod_matrix[VOICE_OPERATORS_PER_VOICE+1][VOICE_OPERATORS_PER_VOICE] = {
     {0x0000, 0x0000, 0x0000, 0x0000},
 };
 
+#define NUM_VOICES (6U)
+
 __attribute__((space(xmemory)))
-voice_t voice;
+voice_t voices[NUM_VOICES];
 oscillator_config_t osc_cfg[VOICE_OPERATORS_PER_VOICE];
 envelope_config_t env_cfg[VOICE_OPERATORS_PER_VOICE];
 
@@ -82,10 +84,10 @@ void cmd_callback(
             switch (command)
             {
                 case COMMON_CMD_VOICE_START_NOTE:
-                    voice_start(&voice, data);
+                    voice_start(&voices[channel], data);
                     break;
                 case COMMON_CMD_VOICE_RELEASE:
-                    voice_release(&voice);
+                    voice_release(&voices[channel]);
                     break;
                 default:
                     break;
@@ -116,18 +118,13 @@ void audio_run(void)
     for (int8_t i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
     {
         oscillator_config_init(&osc_cfg[i]);
-        //oscillator_config_set_harmonic(&osc_cfg[i], 1);
-    }
-
-    for (int8_t i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
-    {
         envelope_config_init(&env_cfg[i]);
-        //envelope_set_attack(&env_cfg[i], 0x00100000);
-        //envelope_set_release(&env_cfg[i], 0x00010000);
-        //envelope_set_sustain(&env_cfg[i], 1023);
     }
 
-    voice_init(&voice, env_cfg, osc_cfg, mod_matrix);
+    for (int8_t i = 0; i < NUM_VOICES; i ++)
+    {
+        voice_init(&voices[i], env_cfg, osc_cfg, mod_matrix);
+    }
 
     TRISEbits.TRISE1 = 0;
 
@@ -135,7 +132,11 @@ void audio_run(void)
     {
         cmd_parser_update();
 
-        int16_t sample = voice_update(&voice);
+        int16_t sample = 0;
+        for (int8_t i = 0; i < NUM_VOICES; i ++)
+        {
+            sample += voice_update(&voices[i]);
+        }
 
         PORTEbits.RE1 = 0;
         while (!synth_dac_ready);
