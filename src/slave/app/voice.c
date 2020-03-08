@@ -101,7 +101,7 @@ voice_output_t voice_update(voice_t *voice)
             "mac w4*w5, B\n"
 
             // Store result from last operator
-            "sac        A, #0,                               [%[phase_offsets]]\n"
+            "sac        B, #0,                               [%[phase_offsets]]\n"
 
             // Outputs
             :   // None
@@ -179,12 +179,15 @@ voice_output_t voice_update(voice_t *voice)
             // output calculation below.
             "clr        A, [%[env]]+=2, w4, [%[osc]]+=2, w5             \n"
             "mpy w4*w5, A                                               \n"
+
             "clr        B, [%[env]]+=2, w4, [%[osc]]+=2, w5, [%[out]]+=2\n"
             "mpy w4*w5, B                                               \n"
-            "clr        B, [%[env]]+=2, w4, [%[osc]]+=2, w5, [%[out]]+=2\n"
-            "mpy w4*w5, B                                               \n"
+
             "clr        A, [%[env]]+=2, w4, [%[osc]]+=2, w5, [%[out]]+=2\n"
             "mpy w4*w5, A                                               \n"
+
+            "clr        B, [%[env]]+=2, w4, [%[osc]]+=2, w5, [%[out]]+=2\n"
+            "mpy w4*w5, B                                               \n"
 
             ////////////////////////////////////////////////////////////////////
             // Calculate Final Voice Output
@@ -195,14 +198,14 @@ voice_output_t voice_update(voice_t *voice)
 
             // Writeback last operator output while setting up accumulator and
             // prefetches.
-            "clr        B, [w9]+=2,     w4, [%[mod]]+=2, w5, [%[out]]+=2\n"
-            "mac w4*w5, B, [w9]+=2,     w4, [%[mod]]+=2, w5             \n"
-            "mac w4*w5, B, [w9]+=2,     w4, [%[mod]]+=2, w5             \n"
-            "mac w4*w5, B, [w9],        w4, [%[mod]],    w5             \n"
-            "mac w4*w5, B\n"
+            "clr        A, [w9]+=2,     w4, [%[mod]]+=2, w5, [%[out]]+=2\n"
+            "mac w4*w5, A, [w9]+=2,     w4, [%[mod]]+=2, w5             \n"
+            "mac w4*w5, A, [w9]+=2,     w4, [%[mod]]+=2, w5             \n"
+            "mac w4*w5, A, [w9],        w4, [%[mod]],    w5             \n"
+            "mac w4*w5, A\n"
 
             // Store final voice output result in last slot of outputs array.
-            "sac        B, #0,                               [%[out]]   \n"
+            "sac        A, #0,                               [%[out]]   \n"
 
             // Outputs
             :   // None
