@@ -78,6 +78,11 @@ void cmd_callback(
                 case COMMON_CMD_OPERATOR_SET_RELEASE:
                     envelope_set_release(&env_cfg[channel], data);
                     break;
+                case COMMON_CMD_OPERATOR_SET_BITMASK:
+                    oscillator_config_set_bitmask(&osc_cfg[channel], data);
+                    break;
+                default:
+                    break;
             }
             break;
         case COMMON_CMD_TYPE_VOICE:

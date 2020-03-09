@@ -103,6 +103,9 @@ typedef enum common_cmd_global_e {
  *
  * - Set Release:
  *      Set the release rate of the operator.  Data contains the release.
+ *
+ * - Set Bitmask:
+ *      Set the bitmask of the operator (pre gain).  Data contains the bitmask.
  */
 typedef enum common_cmd_operator_e {
     COMMON_CMD_OPERATOR_SET_HARMONIC    = 0,
@@ -111,6 +114,7 @@ typedef enum common_cmd_operator_e {
     COMMON_CMD_OPERATOR_SET_DECAY       = 3,
     COMMON_CMD_OPERATOR_SET_SUSTAIN     = 4,
     COMMON_CMD_OPERATOR_SET_RELEASE     = 5,
+    COMMON_CMD_OPERATOR_SET_BITMASK     = 6,
 } common_cmd_operator_t;
 
 /*

@@ -129,3 +129,25 @@ void test_harmonic_multiplies_frequency(void)
     actual = oscillator_update(&m_osc, DEFAULT_PHASE_OFFSET);
     TEST_ASSERT_EQUAL(sine_table[4], actual);
 }
+
+/******************************************************************************
+ * Bitmask
+ ******************************************************************************/
+
+void test_bitmask_applied_to_output(void)
+{
+    oscillator_output_t actual;
+
+    oscillator_config_set_bitmask(&m_cfg, 0xF000);
+
+    // Table entry 41 is the first one to have a bit set in the most significant
+    // nibble.
+    for (int i = 0; i < 41; i ++)
+    {
+        actual = oscillator_update(&m_osc, DEFAULT_PHASE_OFFSET);
+    }
+    TEST_ASSERT_EQUAL_HEX(0, actual);
+
+    actual = oscillator_update(&m_osc, DEFAULT_PHASE_OFFSET);
+    TEST_ASSERT_EQUAL_HEX(0x1000, actual);
+}

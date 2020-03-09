@@ -136,6 +136,10 @@ void _U1RXInterrupt(void)
                                 cmd[0].type = COMMON_CMD_TYPE_OPERATOR;
                                 cmd[0].command = COMMON_CMD_OPERATOR_SET_HARMONIC;
                                 break;
+                            case 10:
+                                cmd[0].type = COMMON_CMD_TYPE_OPERATOR;
+                                cmd[0].command = COMMON_CMD_OPERATOR_SET_BITMASK;
+                                break;
                             default:
                                 break;
                         }
@@ -206,6 +210,9 @@ void _U1RXInterrupt(void)
                                     break;
                                 case COMMON_CMD_OPERATOR_SET_HARMONIC:
                                     data = (rxbyte >> 4) + 1;
+                                    break;
+                                case COMMON_CMD_OPERATOR_SET_BITMASK:
+                                    data = 0xFFFF << (rxbyte >> 3);
                                     break;
                                 case COMMON_CMD_OPERATOR_SET_OUTPUT:
                                     data = (uint16_t)rxbyte << 7;

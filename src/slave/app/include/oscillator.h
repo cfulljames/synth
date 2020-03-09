@@ -25,6 +25,7 @@ typedef int16_t oscillator_output_t;
 // not modify directly.
 typedef struct oscillator_config_s {
     uint8_t harmonic;
+    uint16_t mask;
 } oscillator_config_t;
 
 /*
@@ -42,6 +43,14 @@ void oscillator_config_init(oscillator_config_t *cfg);
  * the same base frequency.
  */
 void oscillator_config_set_harmonic(oscillator_config_t *cfg, uint8_t harmonic);
+
+/*
+ * Set the oscillator bitmask.
+ *
+ * This will be applied to the oscillator sample just before it is returned,
+ * providing a bitcrusher or lo-fi effect.
+ */
+void oscillator_config_set_bitmask(oscillator_config_t *cfg, uint16_t mask);
 
 /******************************************************************************
  * Running

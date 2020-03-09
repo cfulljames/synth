@@ -21,9 +21,9 @@ oscillator_output_t oscillator_update(oscillator_t *osc, int16_t phase)
     // Add the phase offset and mask to get the sine table index.
     uint16_t index = (phase + base_index) & INDEX_MASK;
 
-    oscillator_output_t value = sine_table[index];
+    oscillator_output_t output = sine_table[index] & osc->config->mask;
     osc->accumulator += (osc->freq * osc->config->harmonic);
-    return value;
+    return output;
 }
 
 #endif

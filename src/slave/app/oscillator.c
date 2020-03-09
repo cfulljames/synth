@@ -4,11 +4,17 @@
 void oscillator_config_init(oscillator_config_t *cfg)
 {
     cfg->harmonic = 1;
+    cfg->mask = 0xFFFF;
 }
 
 void oscillator_config_set_harmonic(oscillator_config_t *cfg, uint8_t harmonic)
 {
     cfg->harmonic = harmonic;
+}
+
+void oscillator_config_set_bitmask(oscillator_config_t *cfg, uint16_t mask)
+{
+    cfg->mask = mask;
 }
 
 void oscillator_init(oscillator_t *osc, oscillator_config_t *cfg)
