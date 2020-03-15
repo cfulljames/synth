@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 
-void audio_init(void)
+void audio_init(voice_t *voices, uint16_t num_voices)
 {
     // Configure Capture Compare Timer 1 for use as the sample timer.
     // (~44100 Hz)
@@ -115,7 +115,7 @@ void cmd_callback(
     }
 }
 
-void audio_run(void)
+void audio_update(void)
 {
     cmd_parser_init();
     cmd_parser_set_callback(cmd_callback);

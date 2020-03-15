@@ -7,7 +7,12 @@ void voice_init(
         voice_t *voice,
         envelope_config_t *env_configs,
         oscillator_config_t *osc_configs,
-        int16_t mod_matrix[][VOICE_OPERATORS_PER_VOICE])
+#ifdef TEST
+        void *mod_matrix
+#else
+        int16_t mod_matrix[][VOICE_OPERATORS_PER_VOICE]
+#endif
+        )
 {
     for (uint8_t i = 0; i < VOICE_OPERATORS_PER_VOICE; i ++)
     {

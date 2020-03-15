@@ -76,9 +76,13 @@ typedef enum common_cmd_type_e {
  * Global Commands:
  * - Stop All:
  *      Stop all voices from playing.  Channel and data are unused.
+ * - Complete:
+ *      Process all previously sent commands.  Commands are stored in a buffer
+ *      until this is received.
  */
 typedef enum common_cmd_global_e {
     COMMON_CMD_GLOBAL_STOP_ALL          = 0,
+    COMMON_CMD_GLOBAL_COMPLETE          = 1,
 } common_cmd_global_t;
 
 /*

@@ -1,17 +1,19 @@
 #ifndef __AUDIO_H__
 #define __AUDIO_H__
 
+#include "voice.h"
+
 /*
  * Initialize the audio engine.
  */
-void audio_init(void);
+void audio_init(voice_t *voices, uint16_t num_voices);
 
 
 /*
- * Start the audio engine loop.
+ * Update the audio engine.
  *
- * This function does not return.
+ * This should be called in the main application loop.
  */
-void audio_run(void);
+void audio_update(void);
 
 #endif

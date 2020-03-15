@@ -61,7 +61,18 @@ void voice_init(
         voice_t *voice,
         envelope_config_t *env_configs,
         oscillator_config_t *osc_configs,
-        int16_t mod_matrix[][VOICE_OPERATORS_PER_VOICE]);
+#ifdef TEST
+        /*
+         * CMock is broken for multidimensional array arguments as of v2.5
+         * (https://github.com/ThrowTheSwitch/CMock/issues/213).  To work
+         * arround this, the array is just passed as a void pointer instead when
+         * testing.
+         */
+        void *mod_matrix
+#else
+        int16_t mod_matrix[][VOICE_OPERATORS_PER_VOICE]
+#endif
+        );
 
 /*
  * Start playing a note with this voice.
