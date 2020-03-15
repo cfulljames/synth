@@ -44,6 +44,21 @@ int main(void)
 
 #define NUM_VOICES (6U)
 
+#define SEND_COMMAND(cmd) { \
+        for (uint8_t i = 0; i < COMMON_CMD_NUM_WORDS; i ++) \
+        { \
+            while (_WFFULL); \
+            MWSRFDATA = (cmd)[i].value; \
+        } \
+        (cmd)[0].type = COMMON_CMD_TYPE_GLOBAL; \
+        (cmd)[0].command = COMMON_CMD_GLOBAL_COMPLETE; \
+        for (uint8_t i = 0; i < COMMON_CMD_NUM_WORDS; i ++) \
+        { \
+            while (_WFFULL); \
+            MWSRFDATA = (cmd)[i].value; \
+        } \
+    }
+
 
 // TODO: Remove this and replace with proper MSI implementation
 __attribute__((__interrupt__, auto_psv))
@@ -183,14 +198,7 @@ void _U1RXInterrupt(void)
                             }
                         }
 
-                        for (uint8_t i = 0; i < COMMON_CMD_NUM_WORDS; i ++)
-                        {
-                            // Wait for space to become available in the FIFO.
-                            while (_WFFULL);
-
-                            // Write next word to FIFO.
-                            MWSRFDATA = cmd[i].value;
-                        }
+                        SEND_COMMAND(cmd);
                     }
                     break;
                 case 1:
@@ -236,14 +244,7 @@ void _U1RXInterrupt(void)
                         cmd[1].data = (data >> 15) & 0x7FFF;
                         cmd[2].data = data & 0x7FFF;
 
-                        for (uint8_t i = 0; i < COMMON_CMD_NUM_WORDS; i ++)
-                        {
-                            // Wait for space to become available in the FIFO.
-                            while (_WFFULL);
-
-                            // Write next word to FIFO.
-                            MWSRFDATA = cmd[i].value;
-                        }
+                        SEND_COMMAND(cmd);
                     }
                     else
                     {

@@ -10,6 +10,7 @@ set(SOURCES
     sine.c
     oscillator.c
     cmd_parser.c
+    synth_ctrl.c
 )
 
 # Generate a sine table assembly file (sine.s)

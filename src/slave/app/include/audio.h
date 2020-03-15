@@ -6,7 +6,7 @@
 /*
  * Initialize the audio engine.
  */
-void audio_init(voice_t *voices, uint16_t num_voices);
+void audio_init(void);
 
 
 /*
@@ -14,6 +14,6 @@ void audio_init(voice_t *voices, uint16_t num_voices);
  *
  * This should be called in the main application loop.
  */
-void audio_update(void);
+void audio_update(voice_t *voices, uint8_t num_voices);
 
 #endif

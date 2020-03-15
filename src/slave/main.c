@@ -2,7 +2,7 @@
 #include "uart.h"
 #include "dac.h"
 #include "msi.h"
-#include "audio.h"
+#include "synth_ctrl.h"
 
 #include <xc.h>
 #include <stdio.h>
@@ -16,12 +16,15 @@ int main(void)
     msi_init();
 
     // Application initialization
-    audio_init();
+    synth_ctrl_init();
 
     printf("Slave initialization complete.\n");
 
     // Main application loop
-    audio_run();
+    while (1)
+    {
+        synth_ctrl_update();
+    }
 
     return 0;
 }

@@ -50,6 +50,7 @@ static inline void process_operator_cmd(command_values_t *cmd);
  ******************************************************************************/
 
 // Voice instances.
+__attribute__((space(xmemory)))
 static voice_t m_voices[SYNTH_CTRL_NUM_VOICES];
 
 // Envelope configurations for each operator.
@@ -59,6 +60,7 @@ static envelope_config_t m_env_configs[VOICE_OPERATORS_PER_VOICE];
 static oscillator_config_t m_osc_configs[VOICE_OPERATORS_PER_VOICE];
 
 // Modulation matrix to control modulation froms to each operator.
+__attribute__((space(ymemory)))
 static int16_t m_mod_matrix[VOICE_OPERATORS_PER_VOICE + 1][VOICE_OPERATORS_PER_VOICE];
 
 command_values_t m_cmd_buffer[SYNTH_CTRL_BUFFER_SIZE];
@@ -89,14 +91,14 @@ void synth_ctrl_init(void)
     {
         voice_init(&m_voices[i], m_env_configs, m_osc_configs, m_mod_matrix);
     }
-    audio_init(m_voices, SYNTH_CTRL_NUM_VOICES);
+    audio_init();
     cmd_parser_set_callback(cmd_received_callback);
 }
 
 void synth_ctrl_update(void)
 {
     cmd_parser_update();
-    audio_update();
+    audio_update(m_voices, SYNTH_CTRL_NUM_VOICES);
 }
 
 /******************************************************************************

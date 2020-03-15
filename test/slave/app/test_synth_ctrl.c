@@ -40,7 +40,6 @@ static void voice_init_stub(
         int num_calls);
 static void envelope_config_init_stub(envelope_config_t *cfg, int num_calls);
 static void oscillator_config_init_stub(oscillator_config_t *cfg, int num_calls);
-static void audio_init_stub(voice_t *voices, uint16_t num_voices, int num_calls);
 static void send_complete_command(void);
 
 /******************************************************************************
@@ -75,7 +74,6 @@ void setUp(void)
     voice_init_AddCallback(voice_init_stub);
     envelope_config_init_AddCallback(envelope_config_init_stub);
     oscillator_config_init_AddCallback(oscillator_config_init_stub);
-    audio_init_AddCallback(audio_init_stub);
 
     cmd_parser_init_Expect();
 
@@ -93,7 +91,7 @@ void setUp(void)
         voice_init_ExpectAnyArgs();
     }
 
-    audio_init_ExpectAnyArgs();
+    audio_init_Expect();
     cmd_parser_set_callback_ExpectAnyArgs();
 
     synth_ctrl_init();
@@ -128,7 +126,7 @@ void test_init_initializes_components(void)
 void test_update_updates_components(void)
 {
     cmd_parser_update_Expect();
-    audio_update_Expect();
+    audio_update_Expect(m_voices[0], SYNTH_CTRL_NUM_VOICES);
 
     synth_ctrl_update();
 }
@@ -587,12 +585,6 @@ static void envelope_config_init_stub(envelope_config_t *cfg, int num_calls)
 static void oscillator_config_init_stub(oscillator_config_t *cfg, int num_calls)
 {
     m_osc_cfgs[num_calls] = cfg;
-}
-
-static void audio_init_stub(voice_t *voices, uint16_t num_voices, int num_calls)
-{
-    TEST_ASSERT_EQUAL_PTR(m_voices[0], voices);
-    TEST_ASSERT_EQUAL_UINT16(SYNTH_CTRL_NUM_VOICES, num_voices);
 }
 
 static void send_complete_command(void)
