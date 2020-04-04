@@ -1,6 +1,5 @@
 #include "audio.h"
 #include "dac.h"
-#include "synth.h"
 #include "timer.h"
 #include "voice.h"
 #include "envelope.h"
@@ -9,6 +8,13 @@
 #include "common_cmd.h"
 
 #include <stdio.h>
+#include <stdbool.h>
+
+// Flag signaling that the DAC is ready for a new sample.
+volatile bool m_dac_ready;
+
+// The next sample to write to the DAC.
+volatile uint16_t m_sample;
 
 void audio_init(void)
 {
@@ -26,13 +32,13 @@ void audio_update(voice_t *voices, uint8_t num_voices)
 
     // Turn the status LED off while waiting.
     PORTEbits.RE1 = 0;
-    while (!synth_dac_ready);
+    while (!m_dac_ready);
 
     // Turn the status LED on while processing.
     PORTEbits.RE1 = 1;
 
-    synth_sample = (sample + 0x8000) >> 4;
-    synth_dac_ready = 0;
+    m_sample = (sample + 0x8000) >> 4;
+    m_dac_ready = false;
 }
 
 TIMER_SAMPLE_TIMER_ISR()
@@ -40,8 +46,8 @@ TIMER_SAMPLE_TIMER_ISR()
     TIMER_CLEAR_SAMPLE_TIMER_INTERRUPT_FLAG();
 
     // Write the next sample to the DAC.
-    dac_set(synth_sample);
+    dac_set(m_sample);
 
     // Set the flag to indicate the sample was written.
-    synth_dac_ready = 1;
+    m_dac_ready = true;
 }

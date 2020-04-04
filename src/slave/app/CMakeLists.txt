@@ -5,7 +5,6 @@ project(slave_app C ASM)
 set(SOURCES
     audio.c
     envelope.c
-    synth.s
     voice.c
     sine.c
     oscillator.c
