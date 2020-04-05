@@ -9,6 +9,7 @@ Usage:
 """
 import sys
 import math
+import table_generator
 
 # Number of entries in the table
 MIDI_NOTES = 128
@@ -17,23 +18,30 @@ MIDI_NOTES = 128
 TUNING = 440.0
 MIDDLE_A_NOTE_NUM = 69
 
+# Number of notes in an octave (traditional western scale)
+NOTES_PER_OCTAVE = 12
+
+# Note frequency doubles with each octave
+OCTAVE_SCALAR = 2
+
 # Sample rate in samples per second
 SAMPLE_RATE = 44101
 
 # Sine table length
 SINE_TABLE_LENGTH = 2048
 
-# Check command line arguments
-if len(sys.argv) != 3:
-    sys.stderr.write('Incorrect number of arguments.\n')
-    sys.exit(1)
+# Variable type for C data structure
+VAR_TYPE = '__attribute__((space(psv))) const uint32_t'
+
+# Name of the array in C
+VAR_NAME = 'note_freqs'
 
 freq_values = []
-
 for note_num in range(MIDI_NOTES):
 
     # Calculate note frequency in Hz
-    freq_hz = (2 ** ((note_num - MIDDLE_A_NOTE_NUM) / 12)) * TUNING
+    freq_ratio = (note_num - MIDDLE_A_NOTE_NUM) / NOTES_PER_OCTAVE
+    freq_hz = (OCTAVE_SCALAR ** freq_ratio) * TUNING
 
     # Convert note frequency to sine table entries per frame.
     freq_ipf = freq_hz * (1 / SAMPLE_RATE) * SINE_TABLE_LENGTH
@@ -41,22 +49,6 @@ for note_num in range(MIDI_NOTES):
     # Convert to 16.16 fixed point
     freq_ipf_fixed = round(freq_ipf * (1 << 16))
 
-    freq_values.append(freq_ipf_fixed)
+    freq_values.append('{:#010x}'.format(freq_ipf_fixed))
 
-# Write values to file
-with open(sys.argv[1], 'w') as c_file:
-    c_file.write('#include "{}"\n'.format(sys.argv[2]))
-    c_file.write('__attribute__((space(psv)))\n')
-    c_file.write('const uint32_t note_freqs[] = {\n');
-
-    # Add numbers to array.
-    for value in freq_values:
-        c_file.write('    {:#010x},\n'.format(value))
-
-    c_file.write('};\n')
-
-# Generate C header
-with open(sys.argv[2], 'w') as c_header:
-    c_header.write('#include <stdint.h>\n')
-    c_header.write('__attribute__((space(psv)))\n')
-    c_header.write('extern const uint32_t note_freqs[];\n')
+table_generator.generate_table(freq_values, VAR_TYPE, VAR_NAME)

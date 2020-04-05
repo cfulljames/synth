@@ -9,6 +9,7 @@ Usage:
 """
 import sys
 import math
+import table_generator
 
 # Number of entries in the table
 SINE_TABLE_LENGTH = 2048
@@ -16,38 +17,17 @@ SINE_TABLE_LENGTH = 2048
 # Maximum value for table entries
 MAX_VALUE = 0x7FFF
 
-# Check command line arguments
-if len(sys.argv) != 4:
-    sys.stderr.write('Incorrect number of arguments.\n')
-    sys.exit(1)
+# Variable type for C data structure
+VAR_TYPE = '__attribute__((space(psv))) const int16_t'
 
-sine_values = []
+# Name of the array in C
+VAR_NAME = 'sine_table'
 
 # Calculate sine table values
+sine_values = []
 for i in range(SINE_TABLE_LENGTH):
     radians = i * 2 * math.pi / SINE_TABLE_LENGTH
-    sine_values.append(int(round(math.sin(radians) * MAX_VALUE)))
+    value = int(round(math.sin(radians) * MAX_VALUE))
+    sine_values.append('{:#06x}'.format(value))
 
-# Write values to file
-with open(sys.argv[1], 'w') as c_file:
-    c_file.write('#include "{}"\n'.format(sys.argv[2]))
-    c_file.write('__attribute__((space(psv)))\n')
-    c_file.write('const int16_t sine_table[] = {\n');
-
-    # Convert numbers to two's complement hex and add to file as .word
-    for value in sine_values:
-        value_bytes = value.to_bytes(2, byteorder='big', signed=True)
-        value_hex = value_bytes.hex()
-        c_file.write('    0x{},\n'.format(value_hex))
-
-    c_file.write('};\n')
-
-# Generate C header
-with open(sys.argv[2], 'w') as c_header:
-    c_header.write('#include <stdint.h>\n')
-    c_header.write('__attribute__((space(psv)))\n')
-    c_header.write('extern const int16_t sine_table[];\n')
-
-# Generate assembly header
-with open(sys.argv[3], 'w') as asm_header:
-    asm_header.write('    .extern _sine_table\n')
+table_generator.generate_table(sine_values, VAR_TYPE, VAR_NAME)
