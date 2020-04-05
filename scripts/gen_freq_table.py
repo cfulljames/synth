@@ -31,7 +31,7 @@ SAMPLE_RATE = 44101
 SINE_TABLE_LENGTH = 2048
 
 # Variable type for C data structure
-VAR_TYPE = '__attribute__((space(psv))) const uint32_t'
+VAR_TYPE = '__attribute__((section(".text"))) const uint32_t'
 
 # Name of the array in C
 VAR_NAME = 'note_freqs'

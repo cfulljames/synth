@@ -62,5 +62,7 @@ set(MP_BIN2ELF xc16-bin2hex)
 # Top level project
 project(synth C ASM)
 
-#add_subdirectory(src/slave)
+add_subdirectory(src/bootloader)
+
+# The slave application image is built and linked into the master image.
 add_subdirectory(src/master)
