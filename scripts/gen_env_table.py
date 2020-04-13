@@ -17,7 +17,7 @@ ENV_TABLE_LENGTH = 128
 MAX_VALUE = 0x0FFFFFFF
 MIN_VALUE = 0x00001000
 
-VAR_TYPE = '__attribute__((space(psv))) const uint32_t'
+VAR_TYPE = '__attribute__((section(".text"))) const uint32_t'
 VAR_NAME = 'env_table'
 
 # Calculate table values

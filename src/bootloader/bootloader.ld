@@ -3,7 +3,7 @@
  */
 
 /* Memory map is shared with the master core application. */
-INCLUDE "../../../src/common/memory_map.ld"
+INCLUDE "memory_map.ld"
 
 SECTIONS
 {

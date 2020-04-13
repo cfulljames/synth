@@ -12,32 +12,9 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <logicalFolder name="slave" displayName="slave" projectFiles="true">
-        <logicalFolder name="app" displayName="app" projectFiles="true">
-          <logicalFolder name="include" displayName="include" projectFiles="true">
-            <itemPath>../../src/slave/app/include/audio.h</itemPath>
-            <itemPath>../../src/slave/app/include/envelope.h</itemPath>
-            <itemPath>../../src/slave/app/include/oscillator.h</itemPath>
-            <itemPath>../../src/slave/app/include/voice.h</itemPath>
-          </logicalFolder>
-          <itemPath>../../src/slave/app/audio.c</itemPath>
-          <itemPath>../../src/slave/app/envelope.c</itemPath>
-          <itemPath>../../src/slave/app/oscillator.c</itemPath>
-          <itemPath>../../src/slave/app/voice.c</itemPath>
-        </logicalFolder>
-        <logicalFolder name="hal" displayName="hal" projectFiles="true">
-          <logicalFolder name="include" displayName="include" projectFiles="true">
-            <itemPath>../../src/slave/hal/include/dac.h</itemPath>
-            <itemPath>../../src/slave/hal/include/system.h</itemPath>
-            <itemPath>../../src/slave/hal/include/uart.h</itemPath>
-            <itemPath>../../src/slave/hal/include/msi.h</itemPath>
-          </logicalFolder>
-          <itemPath>../../src/slave/hal/dac.c</itemPath>
-          <itemPath>../../src/slave/hal/system.c</itemPath>
-          <itemPath>../../src/slave/hal/uart.c</itemPath>
-          <itemPath>../../src/slave/hal/msi.c</itemPath>
-        </logicalFolder>
-        <itemPath>../../src/slave/main.c</itemPath>
+      <logicalFolder name="bootloader" displayName="bootloader" projectFiles="true">
+        <itemPath>../../src/bootloader/main.c</itemPath>
+        <itemPath>../../src/bootloader/sysconfig.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
@@ -47,14 +24,14 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>../../src/slave</Elem>
+    <Elem>../../src/bootloader</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="default" type="2">
       <toolsSet>
         <developmentServer>localhost</developmentServer>
-        <targetDevice>dsPIC33CH128MP508S1</targetDevice>
+        <targetDevice>dsPIC33CH128MP508</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PKOBSKDEPlatformTool</platformTool>
@@ -73,6 +50,21 @@
         <archiverTool>
         </archiverTool>
         <loading>
+          <makeArtifact PL="../synth_master"
+                        CT="1"
+                        CN="default"
+                        AC="true"
+                        BL="true"
+                        WD="../synth_master"
+                        BC="${MAKE}  -f Makefile CONF=default"
+                        DBC="${MAKE}  -f Makefile CONF=default TYPE_IMAGE=DEBUG_RUN"
+                        CC="${MAKE}  -f Makefile CONF=default clean"
+                        OP="dist/default/production/synth_master.production.hex"
+                        DOP="dist/default/debug/synth_master.debug.elf"
+                        FL="dist/default/production/synth_master.production.hex"
+                        PD="dist/default/production/synth_master.production.elf"
+                        DD="dist/default/debug/synth_master.debug.elf">
+          </makeArtifact>
           <useAlternateLoadableFile>false</useAlternateLoadableFile>
           <parseOnProdLoad>false</parseOnProdLoad>
           <alternateLoadableFile></alternateLoadableFile>
@@ -214,105 +206,6 @@
         <property key="relaxed-math" value="false"/>
         <property key="save-temps" value="false"/>
       </C30Global>
-      <PKOBSKDEPlatformTool>
-        <property key="AutoSelectMemRanges" value="auto"/>
-        <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
-        <property key="ToolFirmwareFilePath"
-                  value="Press to browse for a specific firmware version"/>
-        <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
-        <property key="firmware.download.all" value="false"/>
-        <property key="memories.configurationmemory" value="true"/>
-        <property key="memories.dataflash" value="true"/>
-        <property key="memories.eeprom" value="true"/>
-        <property key="memories.id" value="true"/>
-        <property key="memories.programmemory" value="true"/>
-        <property key="memories.programmemory.ranges" value="0-3fff"/>
-        <property key="memories.userotp" value="true"/>
-        <property key="programoptions.donoteraseauxmem" value="false"/>
-        <property key="programoptions.eraseb4program" value="true"/>
-        <property key="programoptions.preservedataflash" value="false"/>
-        <property key="programoptions.preservedataflash.ranges" value=""/>
-        <property key="programoptions.preserveeeprom" value="false"/>
-        <property key="programoptions.preserveeeprom.ranges"
-                  value="${memories.eedata.default}"/>
-        <property key="programoptions.preserveprogram.ranges" value=""/>
-        <property key="programoptions.preserveprogramrange" value="false"/>
-        <property key="programoptions.usehighvoltageonmclr" value="false"/>
-        <property key="programoptions.uselvpprogramming" value="true"/>
-      </PKOBSKDEPlatformTool>
-      <pk4hybrid>
-        <property key="ADC" value="true"/>
-        <property key="AutoSelectMemRanges" value="auto"/>
-        <property key="CLC 1" value="true"/>
-        <property key="CLC 2" value="true"/>
-        <property key="CLC 3" value="true"/>
-        <property key="CLC 4" value="true"/>
-        <property key="DACFRZ" value="true"/>
-        <property key="DMA" value="true"/>
-        <property key="FRZ" value="true"/>
-        <property key="Freeze All Other Peripherals" value="true"/>
-        <property key="I2C 1" value="true"/>
-        <property key="MCCP/SCCP 1" value="true"/>
-        <property key="MCCP/SCCP 2" value="true"/>
-        <property key="MCCP/SCCP 3" value="true"/>
-        <property key="MCCP/SCCP 4" value="true"/>
-        <property key="PG1" value="true"/>
-        <property key="PG2" value="true"/>
-        <property key="PG3" value="true"/>
-        <property key="PG4" value="true"/>
-        <property key="PG5" value="true"/>
-        <property key="PG6" value="true"/>
-        <property key="PG7" value="true"/>
-        <property key="PG8" value="true"/>
-        <property key="QEI1" value="true"/>
-        <property key="REFO" value="true"/>
-        <property key="SPI 1" value="true"/>
-        <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
-        <property key="TIMER1" value="true"/>
-        <property key="ToolFirmwareFilePath"
-                  value="Press to browse for a specific firmware version"/>
-        <property key="ToolFirmwareOption.UpdateOptions"
-                  value="ToolFirmwareOption.UseLatest"/>
-        <property key="communication.activationmode" value="nohv"/>
-        <property key="communication.interface" value=""/>
-        <property key="communication.speed" value="${communication.speed.default}"/>
-        <property key="debugoptions.useswbreakpoints" value="false"/>
-        <property key="memories.aux" value="false"/>
-        <property key="memories.bootflash" value="true"/>
-        <property key="memories.configurationmemory" value="true"/>
-        <property key="memories.configurationmemory2" value="true"/>
-        <property key="memories.dataflash" value="true"/>
-        <property key="memories.eeprom" value="true"/>
-        <property key="memories.exclude.configurationmemory" value="true"/>
-        <property key="memories.flashdata" value="true"/>
-        <property key="memories.id" value="true"/>
-        <property key="memories.instruction.ram.ranges"
-                  value="${memories.instruction.ram.ranges}"/>
-        <property key="memories.programmemory" value="true"/>
-        <property key="memories.programmemory.ranges" value="0-3fff"/>
-        <property key="poweroptions.powerenable" value="false"/>
-        <property key="programmerToGoImageName" value="default_ptg"/>
-        <property key="programoptions.donoteraseauxmem" value="false"/>
-        <property key="programoptions.eraseb4program" value="true"/>
-        <property key="programoptions.ledbrightness" value="5"/>
-        <property key="programoptions.pgcconfig" value="pull down"/>
-        <property key="programoptions.pgcresistor.value" value="4.7"/>
-        <property key="programoptions.pgdconfig" value="pull down"/>
-        <property key="programoptions.pgdresistor.value" value="4.7"/>
-        <property key="programoptions.pgmentry.voltage" value="low"/>
-        <property key="programoptions.pgmspeed" value="Med"/>
-        <property key="programoptions.preservedataflash" value="false"/>
-        <property key="programoptions.preserveeeprom" value="false"/>
-        <property key="programoptions.preserveeeprom.ranges" value=""/>
-        <property key="programoptions.preserveprogram.ranges" value="0-3fff"/>
-        <property key="programoptions.preserveprogramrange" value="false"/>
-        <property key="programoptions.preserveuserid" value="false"/>
-        <property key="programoptions.programcalmem" value="false"/>
-        <property key="programoptions.programuserotp" value="false"/>
-        <property key="programoptions.testmodeentrymethod" value="VDDFirst"/>
-        <property key="ptgSendImage" value="true"/>
-        <property key="voltagevalue" value="3.25"/>
-      </pk4hybrid>
     </conf>
   </confs>
 </configurationDescriptor>

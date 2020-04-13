@@ -16,18 +16,30 @@
 // Output Pin Multiplexer Assignment Values
 #define PINMUX_OUT_UART1_TX 0x01
 
+static void interrupts_init(void);
 static void clock_switch(uint8_t source);
 static void clock_init(void);
 static void pins_init(void);
 
 void system_init(void)
 {
+    interrupts_init();
     clock_init();
     pins_init();
 
     // Program and start the slave core image.
     _program_slave(1,0,synth_slave);
     _start_slave();
+}
+
+static void interrupts_init(void)
+{
+    /*
+     * The application provides its own interrupt vector table, which needs to
+     * be activated here.  Otherwise the default IVT supplied with the
+     * bootloader will be used.
+     */
+    INTCON2bits.AIVTEN = 1;
 }
 
 static void clock_init(void)

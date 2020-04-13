@@ -44,10 +44,11 @@
 
 
 # Environment
-MKDIR=mkdir -p
+MKDIR=mkdir
 CP=cp
 CCADMIN=CCadmin
 RANLIB=ranlib
+
 
 # Configure user path settings
 include ../conf.mk
@@ -69,24 +70,27 @@ endif
 DIST_DIR:=dist/${CONF}/${BUILD_NAME_SUFFIX}
 
 # CMake build artifacts directory
-CMAKE_OUTPUT_DIR:=${BUILD_DIR}/src/master
+CMAKE_OUTPUT_DIR:=${BUILD_DIR}/src/bootloader
 
 # Hex file to copy after CMake build
-CMAKE_HEX_FILE:=${BUILD_DIR}/synth_master_with_bootloader.hex
-CMAKE_ELF_FILE:=${CMAKE_OUTPUT_DIR}/synth_master.elf
+CMAKE_HEX_FILE:=${CMAKE_OUTPUT_DIR}/bootloader.hex
+CMAKE_ELF_FILE:=${CMAKE_OUTPUT_DIR}/bootloader.elf
+CMAKE_UNIFIED_HEX_FILE:=${BUILD_DIR}/synth_master_with_bootloader.hex
 
 # Final hex file
-FINAL_HEX_FILE:=${DIST_DIR}/synth_master.${BUILD_NAME_SUFFIX}.hex
-FINAL_ELF_FILE:=${DIST_DIR}/synth_master.${BUILD_NAME_SUFFIX}.elf
+FINAL_HEX_FILE:=${DIST_DIR}/synth_bootloader.${BUILD_NAME_SUFFIX}.hex
+FINAL_ELF_FILE:=${DIST_DIR}/synth_bootloader.${BUILD_NAME_SUFFIX}.elf
+FINAL_UNIFIED_HEX_FILE:=${DIST_DIR}/synth_bootloader.${BUILD_NAME_SUFFIX}.unified.hex
 
 # build
 build:
-	${MKDIR} ${BUILD_DIR}
-	${MKDIR} ${DIST_DIR}
+	${MKDIR} -p ${BUILD_DIR}
+	${MKDIR} -p ${DIST_DIR}
 	cd ${BUILD_DIR} ; cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ../../../
 	${MAKE} -C ${BUILD_DIR} --no-print-directory synth_master_with_bootloader.hex
 	cp ${CMAKE_HEX_FILE} ${FINAL_HEX_FILE}
 	cp ${CMAKE_ELF_FILE} ${FINAL_ELF_FILE}
+	cp ${CMAKE_UNIFIED_HEX_FILE} ${FINAL_UNIFIED_HEX_FILE}
 
 # clean
 clean: .clean-post

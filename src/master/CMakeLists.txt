@@ -16,10 +16,14 @@ add_subdirectory(./../slave slave)
 
 # Set core-specific compiler and linker flags
 set(MP_PROCESSOR_OPTION 33CH128MP508)
-set(MP_LINKER_FILE_OPTION --script=p${MP_PROCESSOR_OPTION}.gld)
+set(MP_LINKER_FILE_OPTION --script=master.ld)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=${MP_PROCESSOR_OPTION}")
 set(CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS} -mcpu=${MP_PROCESSOR_OPTION}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,${MP_LINKER_FILE_OPTION}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} \
+    -Wl,${MP_LINKER_FILE_OPTION} \
+    -Wl,-Map=${PROJECT_NAME}.map \
+    -Wl,--no-isr,--no-ivt \
+")
 
 # Build the HAL library
 add_subdirectory(hal)
@@ -50,6 +54,21 @@ add_custom_command(OUTPUT envtable.c envtable.h
 # Add generated header file location
 target_include_directories(${PROJECT_NAME}.elf
     PRIVATE include ${CMAKE_CURRENT_BINARY_DIR} ../common/include)
+
+# Copy linker scripts to build directory.
+add_custom_command(
+    TARGET ${PROJECT_NAME}.elf PRE_LINK
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_CURRENT_SOURCE_DIR}/master.ld
+            ${CMAKE_CURRENT_BINARY_DIR}/master.ld
+)
+
+add_custom_command(
+    TARGET ${PROJECT_NAME}.elf PRE_LINK
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_SOURCE_DIR}/src/common/memory_map.ld
+            ${CMAKE_CURRENT_BINARY_DIR}/memory_map.ld
+)
 
 # Generate MDB script for flashing
 set(MDB_FLASH_SCRIPT ${PROJECT_NAME}_mdb_flash.txt)

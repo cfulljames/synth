@@ -75,13 +75,16 @@ MEMORY
     bootloader_ivt   : ORIGIN = 0x4,           LENGTH = 0x1FC
 
     /* Bootloader Code */
-    bootloader (xr)  : ORIGIN = 0x200,         LENGTH = 0x00400
+    bootloader (xr)  : ORIGIN = 0x200,         LENGTH = 0x00600
 
-    /* Application Interrupt Vector Table */
-    application_ivt  : ORIGIN = 0x600,         LENGTH = 0x1FC
+    /* Application Interrupt Vector Table (must be page-aligned)  */
+    application_ivt  : ORIGIN = 0x800,         LENGTH = 0x1FC
 
-    /* Appliction Code */
-    application (xr) : ORIGIN = 0x7FC,         LENGTH = 0x15704
+    /* Appliction Code (must be page-aligned) */
+    application (xr) : ORIGIN = 0x1000,         LENGTH = 0x14F00
+
+    /* Special program region; unused. */
+    program          : ORIGIN = 0x0,           LENGTH = 0x0
 
     /* Configuration Registers */
     FSEC             : ORIGIN = 0x15F00,       LENGTH = 0x2
@@ -155,11 +158,11 @@ __FS1ALTREG = 0x15F98;
 
 __BOOTLOADER_IVT_BASE = 0x4;
 __BOOTLOADER_CODE_BASE = 0x200;
-__BOOTLOADER_CODE_LENGTH = 0x400;
+__BOOTLOADER_CODE_LENGTH = 0x600;
 
-__APPLICATION_IVT_BASE = 0x600;
-__APPLICATION_CODE_BASE = 0x7FC;
-__APPLICATION_CODE_LENGTH = 0x15704;
+__APPLICATION_IVT_BASE = 0x800;
+__APPLICATION_CODE_BASE = 0x1000;
+__APPLICATION_CODE_LENGTH = 0x14F00;
 
 __DATA_BASE = 0x1000;
 __DATA_LENGTH = 0x4000;

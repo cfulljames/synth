@@ -12,7 +12,6 @@
     <logicalFolder name="master" displayName="master" projectFiles="true">
       <logicalFolder name="hal" displayName="hal" projectFiles="true">
         <logicalFolder name="include" displayName="include" projectFiles="true">
-          <itemPath>../../src/master/hal/include/sysconfig.h</itemPath>
           <itemPath>../../src/master/hal/include/system.h</itemPath>
           <itemPath>../../src/master/hal/include/uart.h</itemPath>
         </logicalFolder>

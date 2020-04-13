@@ -1,10 +1,6 @@
 #include "system.h"
 #include "uart.h"
 
-// System configuration will be performed at compile time when this file is
-// included.
-#include "sysconfig.h"
-
 // Generated header containing note_freqs table declaration.
 #include "notes.h"
 
@@ -40,6 +36,12 @@ int main(void)
     }
 
     return 0;
+}
+
+__attribute__((__interrupt__, auto_psv))
+void _DefaultInterrupt(void)
+{
+    __asm__("break");
 }
 
 #define NUM_VOICES (6U)

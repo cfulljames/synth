@@ -35,9 +35,9 @@ set(CMAKE_ASM_LINK_FLAGS "")
 # Linker flags (based on MPLAB generated makefiles)
 set(CMAKE_EXE_LINKER_FLAGS "\
     -Wl,--local-stack,--defsym=__MPLAB_BUILD=1 \
-    -Wl,--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr \
+    -Wl,--stack=16,--check-sections,--data-init,--pack-data,--handles \
     -Wl,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link \
-    -Wl,--smart-io,-Map=\"${PROJECT_NAME}.map\",--report-mem \
+    -Wl,--smart-io,--report-mem \
     -Wl,--memorysummary,memoryfile.xml")
 
 # Add debug linker flags to keep debug memory regions free and define debug
@@ -62,7 +62,16 @@ set(MP_BIN2ELF xc16-bin2hex)
 # Top level project
 project(synth C ASM)
 
-add_subdirectory(src/bootloader)
+# Bootloader project, not built by default.  Use `make bootloader.hex` to build.
+add_subdirectory(src/bootloader EXCLUDE_FROM_ALL)
 
 # The slave application image is built and linked into the master image.
 add_subdirectory(src/master)
+
+# Generate combined hex file with bootloader.
+set(HEX_CAT_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/combine_hex.py)
+set(COMBINED_HEX synth_master_with_bootloader.hex)
+set(INPUT_HEX src/master/synth_master.hex src/bootloader/bootloader.hex)
+add_custom_target(${COMBINED_HEX} DEPENDS ${INPUT_HEX})
+add_custom_command(TARGET ${COMBINED_HEX}
+    COMMAND ${HEX_CAT_SCRIPT} ${INPUT_HEX} ${COMBINED_HEX})
