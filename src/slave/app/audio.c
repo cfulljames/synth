@@ -20,6 +20,9 @@ void audio_init(void)
 {
     // Turn the status LED off.
     TRISEbits.TRISE1 = 0;
+
+    // Initialize the sample timer.
+    timer_init();
 }
 
 void audio_update(voice_t *voices, uint8_t num_voices)

@@ -7,6 +7,7 @@ set(SOURCES
     system.c
     uart.c
     msi.c
+    timer.c
 )
 
 # Build a static library
