@@ -7,6 +7,7 @@ set(SOURCES
     traps.c
     uart.c
     system.c
+    log.c
 )
 
 # Set project-specific compiler and linker flags

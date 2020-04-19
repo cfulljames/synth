@@ -61,14 +61,13 @@ void uart_write(uint8_t tx_data)
     U1TXREG = tx_data;
 }
 
-void uart_puts(char *str)
+void uart_write_string(char *str)
 {
     while (*str)
     {
         uart_write((uint8_t)*str);
         str ++;
     }
-    uart_write('\n');
 }
 
 void uart_flush_tx(void)

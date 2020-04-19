@@ -29,10 +29,9 @@ void uart_write(uint8_t tx_data);
 /*
  * Write a line of text over the UART.
  *
- * str must be null-terminated.  A carriage return and newline will be added at
- * the end.
+ * str must be null-terminated.
  */
-void uart_puts(char *str);
+void uart_write_string(char *str);
 
 /*
  * Wait for the UART to finish transmitting.
