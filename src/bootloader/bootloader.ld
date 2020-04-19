@@ -28,6 +28,12 @@ SECTIONS
         *(.text);
     } > bootloader
 
+    /* Constant Data */
+    .const :
+    {
+        *(.const);
+    } > bootloader
+
     /* Configuration Words */
     __FSEC :
     { KEEP (*(__FSEC.sec*))    } >FSEC

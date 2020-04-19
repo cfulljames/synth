@@ -4,6 +4,9 @@ project(bootloader C)
 
 set(SOURCES
     main.c
+    traps.c
+    uart.c
+    system.c
 )
 
 # Set project-specific compiler and linker flags
@@ -17,9 +20,11 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} \
     -Wl,--no-isr,--no-ivt \
 ")
 
-
 # Bootloader executable
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
+
+# Header files
+target_include_directories(${PROJECT_NAME}.elf PRIVATE include)
 
 # Copy linker scripts to build directory.
 add_custom_command(
