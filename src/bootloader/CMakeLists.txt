@@ -4,11 +4,7 @@ project(bootloader C)
 
 set(SOURCES
     main.c
-    traps.c
-    uart.c
-    system.c
     log.c
-    crc.c
 )
 
 # Set project-specific compiler and linker flags
@@ -22,11 +18,17 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} \
     -Wl,--no-isr,--no-ivt \
 ")
 
+# Add hardare abstraction layer
+add_subdirectory(hal)
+
 # Bootloader executable
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
 
 # Header files
 target_include_directories(${PROJECT_NAME}.elf PRIVATE include)
+
+# Link hardware abstraction layer
+target_link_libraries(${PROJECT_NAME}.elf bootloader_hal)
 
 # Copy linker scripts to build directory.
 add_custom_command(
