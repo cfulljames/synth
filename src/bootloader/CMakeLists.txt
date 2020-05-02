@@ -8,6 +8,7 @@ set(SOURCES
     uart.c
     system.c
     log.c
+    crc.c
 )
 
 # Set project-specific compiler and linker flags
