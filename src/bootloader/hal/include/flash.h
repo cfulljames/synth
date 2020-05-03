@@ -3,6 +3,9 @@
  *
  * Provides some interface functions for reading and writing flash memory.  This
  * is used to program and verify the application code.
+ *
+ * Note that this module doesn't have init/deinit functions.  Each function in
+ * this module does its own setup and cleanup as needed.
  */
 #ifndef FLASH_H
 #define FLASH_H
@@ -44,6 +47,7 @@ extern uint32_t _APPLICATION_IVT_BASE;
 // Maximum valid starting address of a page in flash.
 #define MAX_PAGE_ADDRESS (USER_FLASH_ADDRESS_END - PAGE_SIZE)
 
+// Maximum valid address for reading from flash.
 #define MAX_READ_ADDRESS (0x00FFFFFFUL)
 
 // Minimum valid address for application space.

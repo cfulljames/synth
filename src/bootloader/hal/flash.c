@@ -42,6 +42,11 @@ flash_status_t flash_erase_page(uint32_t address)
         status = FLASH_WRITE_ERROR;
     }
 
+    // Restore registers to their default states.
+    NVMCON = 0;
+    NVMADRL = 0;
+    NVMADRH = 0;
+
     return status;
 }
 
@@ -92,6 +97,12 @@ flash_status_t flash_write_dword(
         status = FLASH_WRITE_ERROR;
     }
 
+    // Restore registers to their default states.
+    NVMCON = 0;
+    NVMADRL = 0;
+    NVMADRH = 0;
+    TBLPAG = 0;
+
     return status;
 }
 
@@ -138,6 +149,14 @@ flash_status_t flash_write_row(uint32_t address, const uint32_t *data)
         status = FLASH_WRITE_ERROR;
     }
 
+    // Restore registers to their default states.
+    NVMCON = 0;
+    NVMADRL = 0;
+    NVMADRH = 0;
+    TBLPAG = 0;
+    NVMSRCADRL = 0;
+    NVMSRCADRH = 0;
+
     return status;
 }
 
@@ -168,6 +187,9 @@ flash_status_t flash_read_word(uint32_t address, uint32_t *data)
         *output_word++ = __builtin_tblrdl(offset);
         *output_word++ = __builtin_tblrdh(offset);
     }
+
+    // Restore registers to their default states.
+    TBLPAG = 0;
 
     return status;
 }
