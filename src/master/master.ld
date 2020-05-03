@@ -25,7 +25,7 @@ SECTIONS
         KEEP (*(.isr*));
         *(.libc) *(.libm) *(.libdsp);  /* keep together in this order */
         *(.lib*);
-        *(.text);
+        *(.text*);
     } > application
 
     /* Data Constants */

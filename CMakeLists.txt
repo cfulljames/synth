@@ -14,7 +14,7 @@ set(CND_CONF default)
 # Compiler flags (based on MPLAB generated makefiles)
 set(CMAKE_C_FLAGS "-mno-eds-warn -omf=elf \
     -DXPRJ_default=${CND_CONF} -legacy-libc -O1 -msmart-io=1 -Wall \
-    -msfr-warn=off -std=c99")
+    -msfr-warn=off -std=c99 -ffunction-sections")
 
 # Add these flags to generate assembly
 #    -fverbose-asm -Wa,-adhln \
@@ -36,7 +36,7 @@ set(CMAKE_ASM_LINK_FLAGS "")
 set(CMAKE_EXE_LINKER_FLAGS "\
     -Wl,--local-stack,--defsym=__MPLAB_BUILD=1 \
     -Wl,--stack=16,--check-sections,--data-init,--pack-data,--handles \
-    -Wl,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link \
+    -Wl,--gc-sections,--fill-upper=0,--stackguard=16,--no-force-link \
     -Wl,--smart-io,--report-mem \
     -Wl,--memorysummary,memoryfile.xml")
 

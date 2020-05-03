@@ -5,6 +5,7 @@ project(bootloader C)
 set(SOURCES
     main.c
     log.c
+    cobs.c
 )
 
 # Set project-specific compiler and linker flags
