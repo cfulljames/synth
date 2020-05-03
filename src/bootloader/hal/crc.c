@@ -49,7 +49,7 @@ void crc_init(void)
     CRCWDATH = CRC_SEED >> 16;
 }
 
-uint32_t crc_calculate(uint8_t *data, uint32_t length)
+uint32_t crc_calculate(const uint8_t *data, uint32_t length)
 {
     // Calculate the CRC for all but the last byte of data.  The last byte
     // requires some special care to ensure we get the result at the right time,

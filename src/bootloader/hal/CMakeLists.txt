@@ -7,6 +7,7 @@ set(SOURCES
     uart.c
     system.c
     crc.c
+    flash.c
 )
 
 add_library(${PROJECT_NAME} ${SOURCES})

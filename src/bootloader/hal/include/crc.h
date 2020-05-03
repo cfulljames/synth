@@ -28,6 +28,6 @@ void crc_init(void);
  * multiple chunks.  It returns the current CRC value at the end of the
  * calculation.
  */
-uint32_t crc_calculate(uint8_t *data, uint32_t length);
+uint32_t crc_calculate(const uint8_t *data, uint32_t length);
 
 #endif

@@ -1,5 +1,6 @@
 #include "log.h"
 #include "uart.h"
+#include "flash.h"
 #include "xc.h"
 
 // Number of bits to shift the upper nibble of a byte into the lower nibble.
@@ -8,8 +9,11 @@
 // Bitmask for isolating the lower nibble of a byte.
 #define LOWER_NIBBLE_MASK 0x0F
 
-// Number of bits to shift the upper byte of a word into the lower byte.
-#define UPPER_BYTE_SHIFT 8U
+// Number of bits to shift the middle byte of a flash word into the lower byte.
+#define MIDDLE_BYTE_SHIFT 8U
+
+// Number of bits to shift the upper byte of a flash word into the lower byte.
+#define UPPER_BYTE_SHIFT 16U
 
 // Bitmask for isolating the lower byte of a word.
 #define LOWER_BYTE_MASK 0x00FF
@@ -20,11 +24,8 @@
 // Number of instructions used to store the UDID.
 #define UDID_LENGTH 5U
 
-// The page number of the UDID.
-#define UDID_PAGE 0x80
-
 // The address offset of the least-significant double-word of the UDID.
-#define UDID_FIRST_ADDRESS 0x1200
+#define UDID_FIRST_ADDRESS 0x801200
 
 // The address of the most-significant double-word of the UDID.
 #define UDID_LAST_ADDRESS \
@@ -48,20 +49,27 @@ void log_serial_number(void)
 {
     log_str("Serial Number: ");
 
-    TBLPAG = UDID_PAGE;
-    for (int address = UDID_LAST_ADDRESS;
+    for (uint32_t address = UDID_LAST_ADDRESS;
             address >= UDID_FIRST_ADDRESS;
             address -= WORDS_PER_INSTRUCTION)
     {
-        // Read 3 bytes of serial number from device.  Lower word contains two
-        // bytes, upper word contains one.
-        uint16_t lower_word = __builtin_tblrdl(address);
-        uint16_t upper_word = __builtin_tblrdh(address);
+        uint32_t data_word;
+        flash_status_t ret;
+        ret = flash_read_word(address, &data_word);
 
-        // Log bytes via UART.
-        log_hex(upper_word & LOWER_BYTE_MASK);
-        log_hex(lower_word >> UPPER_BYTE_SHIFT);
-        log_hex(lower_word & LOWER_BYTE_MASK);
+        if (FLASH_OK == ret)
+        {
+            // Log bytes via UART.
+            log_hex((data_word >> UPPER_BYTE_SHIFT) & LOWER_BYTE_MASK);
+            log_hex((data_word >> MIDDLE_BYTE_SHIFT) & LOWER_BYTE_MASK);
+            log_hex(data_word & LOWER_BYTE_MASK);
+        }
+        else
+        {
+            log_str("Error: Failed to read serial number: ");
+            log_hex(ret);
+            log_line("");
+        }
 
         // Log dashes between three-byte sections.
         if (address != UDID_FIRST_ADDRESS)
