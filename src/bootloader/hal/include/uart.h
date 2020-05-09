@@ -38,4 +38,12 @@ void uart_write_string(char *str);
  */
 void uart_flush_tx(void);
 
+/*
+ * Read a byte from the UART.
+ *
+ * If a byte is available, it is placed in rx_data and a value of 1 is returned.
+ * Otherwise, rx_data is unmodified and the function returns 0.
+ */
+uint8_t uart_read(uint8_t *rx_data);
+
 #endif

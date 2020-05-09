@@ -8,6 +8,7 @@ set(SOURCES
     system.c
     crc.c
     flash.c
+    timer.c
 )
 
 add_library(${PROJECT_NAME} ${SOURCES})

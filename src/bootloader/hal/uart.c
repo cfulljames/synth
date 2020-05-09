@@ -61,6 +61,23 @@ void uart_write(uint8_t tx_data)
     U1TXREG = tx_data;
 }
 
+uint8_t uart_read(uint8_t *rx_data)
+{
+    uint8_t received_bytes;
+    if (U1STAHbits.URXBE)
+    {
+        // RX buffer is empty, no data available.
+        received_bytes = 0;
+    }
+    else
+    {
+        // At least one byte in the buffer.
+        received_bytes = 1;
+        *rx_data = U1RXREG;
+    }
+    return received_bytes;
+}
+
 void uart_write_string(char *str)
 {
     while (*str)
