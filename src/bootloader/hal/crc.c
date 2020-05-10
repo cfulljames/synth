@@ -43,14 +43,24 @@ void crc_init(void)
     // Set the CRC polynomial.
     CRCXORL = CRC_POLYNOMIAL & 0x0000FFFF;
     CRCXORH = CRC_POLYNOMIAL >> 16;
+}
 
-    // Set the CRC starting value.
-    CRCWDATL = CRC_SEED & 0x0000FFFF;
-    CRCWDATH = CRC_SEED >> 16;
+void crc_deinit(void)
+{
+    CRCCON1 = 0;
+    CRCCON2 = 0;
+    CRCXORL = 0;
+    CRCXORH = 0;
+    CRCWDATL = 0;
+    CRCWDATH = 0;
 }
 
 uint32_t crc_calculate(const uint8_t *data, uint32_t length)
 {
+    // Set the CRC starting value.
+    CRCWDATL = CRC_SEED & 0x0000FFFF;
+    CRCWDATH = CRC_SEED >> 16;
+
     // Calculate the CRC for all but the last byte of data.  The last byte
     // requires some special care to ensure we get the result at the right time,
     // so we'll do that separately below.

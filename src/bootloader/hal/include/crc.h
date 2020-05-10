@@ -22,11 +22,14 @@
 void crc_init(void);
 
 /*
+ * Reset the CRC peripheral to its default state.
+ */
+void crc_deinit(void);
+
+/*
  * Calculate the CRC for the given data.
  *
- * This can be called multiple times in succession to do the calculation in
- * multiple chunks.  It returns the current CRC value at the end of the
- * calculation.
+ * This always re-seeds the CRC, so any previous result is overwritten.
  */
 uint32_t crc_calculate(const uint8_t *data, uint32_t length);
 
