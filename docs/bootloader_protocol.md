@@ -1,82 +1,94 @@
 Bootloader Communication Protocol
 ================================================================================
 
-Commands
+Messages
 --------
 
+### Command Result
+Type Code = 0x00
+Response: None
+Direction: Device -> Host
+
++---------------+---------------+---------------+
+|    8 bits     |    8 bits     |    32 bits    |
++---------------+---------------+---------------+
+|   Type Code   |  Result Code  |      CRC      |
++---------------+---------------+---------------+
+
 ### Erase
-Command Code = 0xA1
+Type Code = 0x01
 Response: After Processing
+Direction: Host -> Device
 
 +---------------+---------------+---------------+---------------+
-|    8 bits     |    32 bits    |    32 bits    |    32 bits    |
+|    8 bits     |    32 bits    |    16 bits    |    32 bits    |
 +---------------+---------------+---------------+---------------+
-| Command Code  | Start Address |    Length     |      CRC      |
+|   Type Code   | Start Address |    Length     |      CRC      |
 +---------------+---------------+---------------+---------------+
 
 
 ### Write
-Command Code = 0xA2
-Response: Immediate
-
-+---------------+---------------+---------------+---------------+
-|    8 bits     |    32 bits    |    32 bits    |    32 bits    |
-+---------------+---------------+---------------+---------------+
-| Command Code  | Start Address |    Length     |      CRC      |
-+---------------+---------------+---------------+---------------+
-
-
-### Data
-Command Code = 0xA3
+Type Code = 0x02
 Response: After Processing
+Direction: Host -> Device
 
-+---------------+---------------+---------------+---------------+
-|    8 bits     |    32 bits    |    n bits     |    32 bits    |
-+---------------+---------------+---------------+---------------+
-| Command Code  |       n       |     Data      |      CRC      |
-+---------------+---------------+---------------+---------------+
++---------------+---------------+---------------+---------------+---------------+
+|    8 bits     |    32 bits    |    16 bits    |    n bytes    |    32 bits    |
++---------------+---------------+---------------+---------------+---------------+
+|   Type Code   | Start Address |  Length  (n)  |     Data      |      CRC      |
++---------------+---------------+---------------+---------------+---------------+
 
 
 ### Verify
-Command Code = 0xA4
+Type Code = 0x03
 Response: After Processing
+Direction: Host -> Device
 
-+---------------+---------------+
-|    8 bits     |    32 bits    |
-+---------------+---------------+
-| Command Code  |      CRC      |
-+---------------+---------------+
++---------------+---------------+---------------+---------------+---------------+
+|    8 bits     |    32 bits    |    32 bits    |    32 bits    |    32 bits    |
++---------------+---------------+---------------+---------------+---------------+
+|   Type Code   | Start Address |  End Address  | Expected CRC  |      CRC      |
++---------------+---------------+---------------+---------------+---------------+
 
 
 ### Run
-Command Code = 0xA5
+Type Code = 0x04
 Response: Immediate
+Direction: Host -> Device
 
 +---------------+---------------+
 |    8 bits     |    32 bits    |
 +---------------+---------------+
-| Command Code  |      CRC      |
+|   Type Code   |      CRC      |
 +---------------+---------------+
 
 
-### Acknowledge (ACK)
-Command Code = 0xA6
-Response: None
+### Request Device Info
+Type Code = 0x05
+Response: Immediate
+Direction: Host -> Device
 
 +---------------+---------------+
 |    8 bits     |    32 bits    |
 +---------------+---------------+
-| Command Code  |      CRC      |
+|   Type Code   |      CRC      |
 +---------------+---------------+
 
 
-### Error (ERR)
-Command Code = 0xA7
+### Device Info
+Type Code = 0x06
 Response: None
+Direction: Device -> Host
 
-+---------------+---------------+---------------+
-|    8 bits     |    32 bits    |    32 bits    |
-+---------------+---------------+---------------+
-| Command Code  |  Error Code   |      CRC      |
-+---------------+---------------+---------------+
++---------------+---------------+---------------+---------------+---------------+
+|    8 bits     |   120 bits    |    32 bits    |    32 bits    |    32 bits    |
++---------------+---------------+---------------+---------------+---------------+
+|   Type Code   | Serial Number |  BL Version   |  App Version  |      CRC      |
++---------------+---------------+---------------+---------------+---------------+
 
+BL/App version number format:
++---------------+---------------+---------------+
+|    8 bits     |    8 bits     |    16 bits    |
++---------------+---------------+---------------+
+|     Major     |     Minor     |     Patch     |
++---------------+---------------+---------------+
