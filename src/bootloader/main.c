@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "crc.h"
 #include "serial.h"
+#include "messages.h"
 #include "xc.h"
 
 int main()
@@ -16,6 +17,7 @@ int main()
 
     // Initialize bootloader application layer (no de-init required)
     serial_init();
+    messages_init();
 
     while (1)
     {

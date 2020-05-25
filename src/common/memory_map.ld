@@ -75,13 +75,19 @@ MEMORY
     bootloader_ivt   : ORIGIN = 0x4,           LENGTH = 0x1FC
 
     /* Bootloader Code */
-    bootloader (xr)  : ORIGIN = 0x200,         LENGTH = 0x00600
+    bootloader (xr)  : ORIGIN = 0x200,         LENGTH = 0x00E00
 
     /* Application Interrupt Vector Table (must be page-aligned)  */
-    application_ivt  : ORIGIN = 0x800,         LENGTH = 0x1FC
+    application_ivt  : ORIGIN = 0x1000,        LENGTH = 0x1FC
 
     /* Appliction Code (must be page-aligned) */
-    application (xr) : ORIGIN = 0x1000,         LENGTH = 0x14F00
+    application (xr) : ORIGIN = 0x1800,        LENGTH = 0x14700
+
+    /* Application Valid Status */
+    app_valid   (xr) : ORIGIN = 0x15EF8,       LENGTH = 0x4
+
+    /* Application Software Version */
+    app_version (xr) : ORIGIN = 0x15EFC,       LENGTH = 0x4
 
     /* Special program region; unused. */
     program          : ORIGIN = 0x0,           LENGTH = 0x0
@@ -117,6 +123,23 @@ MEMORY
     FS1DEVOPT        : ORIGIN = 0x15F94,       LENGTH = 0x2
     FS1ALTREG        : ORIGIN = 0x15F98,       LENGTH = 0x2
 }
+
+/******************************************************************************
+ * Application Info Data
+ ******************************************************************************/
+
+/*
+ * The application valid status.  This is updated by the bootloader after
+ * verifying the application.
+ */
+__APP_VALID = 0x15EF8;
+
+/*
+ * The application version number.  Needs to be accessible from the bootloader
+ * for reporting.
+ */
+__APP_VERSION = 0x15EFC;
+
 
 /******************************************************************************
  * Configuration Registers

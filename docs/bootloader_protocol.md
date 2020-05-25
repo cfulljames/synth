@@ -15,6 +15,16 @@ Direction: Device -> Host
 |   Type Code   |  Result Code  |      CRC      |
 +---------------+---------------+---------------+
 
+Result Codes:
+- 0x00: OK
+- 0x01: Serial Protocol Error: Timeout
+- 0x02: Serial Protocol Error: Packet CRC Fail
+- 0x03: Serial Protocol Error: COBS Decode Fail
+- 0x04: Serial Protocol Error: Packet Too Long
+- 0x05: Serial Protocol Error: Packet Too Short
+- 0x10: Message Error: Invalid Message Type
+- 0x11: Message Error: Message Data Too Long for Type
+
 ### Erase
 Type Code = 0x01
 Response: After Processing

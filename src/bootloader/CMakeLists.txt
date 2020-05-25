@@ -7,6 +7,7 @@ set(SOURCES
     log.c
     cobs.c
     serial.c
+    messages.c
 )
 
 # Set project-specific compiler and linker flags

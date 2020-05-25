@@ -40,6 +40,12 @@ SECTIONS
         *(synth_slave_image);
     } > application
 
+    /* Application version number. */
+    .app_version :
+    {
+        KEEP(*(.app_version));
+    } > app_version
+
     /*
      * ICD Debug Exec
      *

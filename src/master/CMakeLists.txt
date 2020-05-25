@@ -9,6 +9,7 @@ set(SOURCES
     main.c
     notes.c
     envtable.c
+    version.c
 )
 
 # Include the slave project as part of the master build
