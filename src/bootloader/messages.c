@@ -41,7 +41,8 @@
 
 // The address of the most significant double-word of the application version.
 #define APP_VERSION_LAST_ADDRESS \
-    (_APP_VERSION + (WORDS_PER_INSTRUCTION * (APP_VERSION_LENGTH - 1U)))
+    (APP_VERSION_FIRST_ADDRESS + \
+    (WORDS_PER_INSTRUCTION * (APP_VERSION_LENGTH - 1U)))
 
 static void on_serial_error(serial_status_t error);
 static void on_serial_msg_received(const uint8_t *data, uint16_t length);
@@ -66,7 +67,15 @@ struct serial_error_response_s error_responses[] = {
 #define ERROR_RESPONSES_LENGTH ( \
         sizeof(error_responses) / sizeof(struct serial_error_response_s))
 
-extern uint32_t _APP_VERSION;
+#ifdef TEST
+// Address defined in test code.
+extern const uint32_t APP_VERSION_FIRST_ADDRESS;
+#else
+// Address defined in linker script.
+__prog__ __attribute__((space(prog)))
+extern uint8_t _APP_VERSION;
+const uint32_t APP_VERSION_FIRST_ADDRESS = ((uint32_t)&_APP_VERSION);
+#endif
 
 void messages_init(void)
 {
@@ -123,9 +132,6 @@ static void handle_device_info_request(const uint8_t *data, uint16_t length)
     {
         uint8_t msg[DATA_INFO_MSG_LENGTH];
         uint8_t index = 0;
-        flash_status_t ret;
-        uint32_t address;
-        uint32_t data_word;
 
         msg[index++] = MESSAGE_TYPE_DEVICE_INFO;
 
@@ -148,7 +154,7 @@ static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index)
 {
     uint32_t address;
     uint32_t data_word;
-    flash_status_t ret;
+    flash_status_t ret = FLASH_OK;
 
     for (address = UDID_LAST_ADDRESS;
             address >= UDID_FIRST_ADDRESS;
@@ -167,9 +173,9 @@ static flash_status_t read_application_version(uint8_t *msg, uint8_t *index)
 {
     uint32_t address;
     uint32_t data_word;
-    flash_status_t ret;
+    flash_status_t ret = FLASH_OK;
 
-    for (address = _APP_VERSION;
+    for (address = APP_VERSION_FIRST_ADDRESS;
             address <= APP_VERSION_LAST_ADDRESS;
             address += WORDS_PER_INSTRUCTION)
     {

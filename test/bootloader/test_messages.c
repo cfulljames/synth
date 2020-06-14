@@ -19,7 +19,9 @@ serial_msg_cb_t m_msg_cb;
 uint8_t m_send_data[1024];
 uint16_t m_send_length;
 
-uint32_t _APP_VERSION = 0x015EFC;
+// The actual definition for this valus is in the linker script, but we can't
+// use that for testing when building for the host platform.
+uint32_t APP_VERSION_FIRST_ADDRESS = 0x015EFC;
 
 #define RECEIVE_MESSAGE(m) m_msg_cb((m), sizeof(m))
 
@@ -191,7 +193,8 @@ void test_device_info_success(void)
     };
     for (int i = 0; i < 2; i ++)
     {
-        flash_read_word_ExpectAndReturn(_APP_VERSION + (2 * i), NULL, FLASH_OK);
+        flash_read_word_ExpectAndReturn(
+                APP_VERSION_FIRST_ADDRESS + (2 * i), NULL, FLASH_OK);
         flash_read_word_IgnoreArg_data();
         flash_read_word_ReturnThruPtr_data(&application_version[i]);
     }
