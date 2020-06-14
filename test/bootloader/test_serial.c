@@ -111,7 +111,6 @@ void test_timer_not_restarted_when_no_data_received(void)
     uart_read_ExpectAnyArgsAndReturn(0);
 
     // Note that timer reset/start functions NOT expected.
-    timer_check_expired_ExpectAndReturn(false);
 
     serial_update();
 }
@@ -130,7 +129,6 @@ void test_error_cb_invoked_for_empty_packet(void)
 void test_error_cb_not_invoked_for_no_error(void)
 {
     uart_read_ExpectAnyArgsAndReturn(0);
-    timer_check_expired_ExpectAndReturn(false);
     serial_update();
     TEST_ASSERT_EQUAL_INT(0, m_error_callback_called);
 }
@@ -206,6 +204,20 @@ void test_packet_timeout(void)
     uint8_t new_data[] = {0x04, 0x01, 0x01, 0x01, 0x01, 0x00};
     inject_uart_data(new_data, sizeof(new_data));
     assert_error_cb_called_once_with_error(SERIAL_DATA_TOO_SHORT);
+}
+
+void test_no_timeout_when_buffer_empty(void)
+{
+    // No new data available
+    uart_read_ExpectAnyArgsAndReturn(0);
+
+    // Inject timeout status
+    timer_check_expired_IgnoreAndReturn(true);
+
+    serial_update();
+
+    // Error callback should not be invoked
+    TEST_ASSERT_EQUAL_INT(0, m_error_callback_called);
 }
 
 void test_packet_too_long(void)

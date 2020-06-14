@@ -104,10 +104,10 @@ void serial_update(void)
             status = handle_data_byte(rx_byte);
         }
     }
-    else if (timer_check_expired())
+    else if (m_rx_data_index && timer_check_expired())
     {
-        // No byte received, and it's been too long since the last one.  We'll
-        // assume that a communication problem happened and set the error.
+        // No new byte received, and it's been too long since the last one.
+        // We'll assume that a communication problem happened and set the error.
         status = SERIAL_TIMEOUT;
         m_rx_data_index = 0;
     }
