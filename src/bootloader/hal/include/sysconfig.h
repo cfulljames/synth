@@ -20,7 +20,7 @@
 #pragma config CWRP = OFF               // Configuration Segment Write-Protect bit (Configuration Segment may be written)
 #pragma config CSS = DISABLED           // Configuration Segment Code-Protect Level bits (No Protection (other than CWRP))
 #pragma config AIVTDIS = ON             // Alternate Interrupt Vector Table bit (Enabled AIVT)
-#pragma config BSLIM = 0x1FFD           // Boot Segment Flash Page Address Limit bits (Boot Segment Flash page address  limit)
+#pragma config BSLIM = 0x1FFC           // Boot Segment Flash Page Address Limit bits (Boot Segment Flash page address  limit)
 #pragma config FNOSC = 0x02             // Oscillator Source Selection (Primary Oscillator (external clock))
 #pragma config IESO = OFF               // Two-speed Oscillator Start-up Enable bit (Start up with user-selected oscillator source)
 #pragma config POSCMD = 0x00            // Primary Oscillator Mode Select bits (Primary oscillator enabled as EC)
