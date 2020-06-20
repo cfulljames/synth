@@ -13,8 +13,35 @@
                    displayName="Source Files"
                    projectFiles="true">
       <logicalFolder name="bootloader" displayName="bootloader" projectFiles="true">
+        <logicalFolder name="hal" displayName="hal" projectFiles="true">
+          <logicalFolder name="include" displayName="include" projectFiles="true">
+            <itemPath>../../src/bootloader/hal/include/crc.h</itemPath>
+            <itemPath>../../src/bootloader/hal/include/flash.h</itemPath>
+            <itemPath>../../src/bootloader/hal/include/sysconfig.h</itemPath>
+            <itemPath>../../src/bootloader/hal/include/system.h</itemPath>
+            <itemPath>../../src/bootloader/hal/include/timer.h</itemPath>
+            <itemPath>../../src/bootloader/hal/include/uart.h</itemPath>
+          </logicalFolder>
+          <itemPath>../../src/bootloader/hal/crc.c</itemPath>
+          <itemPath>../../src/bootloader/hal/flash.c</itemPath>
+          <itemPath>../../src/bootloader/hal/system.c</itemPath>
+          <itemPath>../../src/bootloader/hal/timer.c</itemPath>
+          <itemPath>../../src/bootloader/hal/traps.c</itemPath>
+          <itemPath>../../src/bootloader/hal/uart.c</itemPath>
+        </logicalFolder>
+        <logicalFolder name="include" displayName="include" projectFiles="true">
+          <itemPath>../../src/bootloader/include/cobs.h</itemPath>
+          <itemPath>../../src/bootloader/include/log.h</itemPath>
+          <itemPath>../../src/bootloader/include/messages.h</itemPath>
+          <itemPath>../../src/bootloader/include/serial.h</itemPath>
+          <itemPath>../../src/bootloader/include/version.h</itemPath>
+        </logicalFolder>
         <itemPath>../../src/bootloader/main.c</itemPath>
-        <itemPath>../../src/bootloader/sysconfig.h</itemPath>
+        <itemPath>../../src/bootloader/cobs.c</itemPath>
+        <itemPath>../../src/bootloader/log.c</itemPath>
+        <itemPath>../../src/bootloader/messages.c</itemPath>
+        <itemPath>../../src/bootloader/serial.c</itemPath>
+        <itemPath>../../src/bootloader/version.c</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
