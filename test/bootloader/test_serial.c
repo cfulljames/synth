@@ -256,7 +256,7 @@ void test_valid_packet(void)
     // Send packet separator to trigger end of packet handling.
     inject_uart_byte(&data[sizeof(data) - 1]);
 
-    // CRC returns 01 01 01 01, data contains 01 01 01 01, check should pass.
+    // CRC returns 01 02 03 04, data contains 01 02 03 04, check should pass.
     crc_calculate_ExpectAnyArgsAndReturn(0x01020304);
 
     serial_update();
@@ -280,13 +280,51 @@ void test_null_msg_callback(void)
     // Send packet separator to trigger end of packet handling.
     inject_uart_byte(&data[sizeof(data) - 1]);
 
-    // CRC returns 01 01 01 01, data contains 01 01 01 01, check should pass.
+    // CRC returns 01 02 03 04, data contains 01 02 03 04, check should pass.
     crc_calculate_ExpectAnyArgsAndReturn(0x01020304);
 
     serial_set_msg_received_callback(NULL);
 
     // If NULL callback is invoked, this will segfault.
     serial_update();
+}
+
+void test_multiple_packets(void)
+{
+    // Message is just one byte of COBS overhead, followed by one byte of data
+    // and four byte CRC.
+    uint8_t data[] = {0x06, 0xAA, 0x01, 0x02, 0x03, 0x04, 0x00};
+
+    // Skip the packet separator, sent below.
+    inject_uart_data(data, sizeof(data) - 1);
+
+    // Send packet separator to trigger end of packet handling.
+    inject_uart_byte(&data[sizeof(data) - 1]);
+
+    // CRC returns 01 02 03 04, data contains 01 02 03 04, check should pass.
+    crc_calculate_ExpectAnyArgsAndReturn(0x01020304);
+
+    serial_update();
+
+    TEST_ASSERT_EQUAL_INT(1, m_msg_data_length);
+    TEST_ASSERT_EQUAL_INT(0xAA, m_msg_data_buffer[0]);
+
+    // Send the packet a second time.
+    uint8_t new_data[] = {0x06, 0xAB, 0x02, 0x03, 0x04, 0x05, 0x00};
+
+    // Skip the packet separator, sent below.
+    inject_uart_data(new_data, sizeof(new_data) - 1);
+
+    // Send packet separator to trigger end of packet handling.
+    inject_uart_byte(&new_data[sizeof(new_data) - 1]);
+
+    // CRC returns 02 03 04 05, data contains 02 03 04 05, check should pass.
+    crc_calculate_ExpectAnyArgsAndReturn(0x02030405);
+
+    serial_update();
+
+    TEST_ASSERT_EQUAL_INT(1, m_msg_data_length);
+    TEST_ASSERT_EQUAL_INT(0xAB, m_msg_data_buffer[0]);
 }
 
 /******************************************************************************

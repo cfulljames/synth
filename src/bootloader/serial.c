@@ -97,6 +97,7 @@ void serial_update(void)
             // The zero byte is the packet separator; this is the end of the
             // packet.
             status = handle_end_of_packet();
+            m_rx_data_index = 0;
         }
         else
         {
