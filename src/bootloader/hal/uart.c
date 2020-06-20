@@ -23,10 +23,6 @@ void uart_init(void)
     U1BRG = CLOCK_FREQ_FOSC / (UART_BAUDRATE * 4);
     U1BRGH = 0;
 
-    // Enable receive interrupt.
-    _U1RXIE = 1;
-    _U1RXIP = 1;
-
     // Enable UART TX
     U1MODEbits.UARTEN = 1;
     U1MODEbits.UTXEN = 1;
@@ -42,9 +38,6 @@ void uart_deinit(void)
     U1MODEHbits.BCLKSEL = 0;
     U1BRG = 0;
     U1BRGH = 0;
-
-    _U1RXIE = 0;
-    _U1RXIP = 0;
 
     U1MODEbits.UTXEN = 0;
     U1MODEbits.URXEN = 0;
@@ -84,6 +77,15 @@ void uart_write_string(char *str)
     {
         uart_write((uint8_t)*str);
         str ++;
+    }
+}
+
+void uart_flush_rx(void)
+{
+    volatile uint8_t rx_data;
+    while (!U1STAHbits.URXBE)
+    {
+        rx_data = U1RXREG;
     }
 }
 

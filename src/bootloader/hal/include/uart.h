@@ -39,6 +39,11 @@ void uart_write_string(char *str);
 void uart_flush_tx(void);
 
 /*
+ * Clear all data from the UART receive buffer.
+ */
+void uart_flush_rx(void);
+
+/*
  * Read a byte from the UART.
  *
  * If a byte is available, it is placed in rx_data and a value of 1 is returned.
