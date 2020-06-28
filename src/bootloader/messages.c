@@ -4,45 +4,60 @@
 #include "version.h"
 #include <stddef.h>
 
-#define MSG_TYPE_INDEX (0)
-#define MSG_RESP_INDEX (1)
-#define DATA_INFO_MSG_LENGTH (24)
-
 // Number of bits to shift the upper nibble of a byte into the lower nibble.
-#define UPPER_NIBBLE_SHIFT 4U
+#define UPPER_NIBBLE_SHIFT (4U)
 
 // Bitmask for isolating the lower nibble of a byte.
-#define LOWER_NIBBLE_MASK 0x0F
+#define LOWER_NIBBLE_MASK (0x0FU)
 
 // Number of bits to shift the middle byte of a flash word into the lower byte.
-#define MIDDLE_BYTE_SHIFT 8U
+#define MIDDLE_BYTE_SHIFT (8U)
 
 // Number of bits to shift the upper byte of a flash word into the lower byte.
-#define UPPER_BYTE_SHIFT 16U
+#define UPPER_BYTE_SHIFT (16U)
 
 // Bitmask for isolating the lower byte of a word.
-#define LOWER_BYTE_MASK 0x00FF
+#define LOWER_BYTE_MASK (0x00FFU)
 
 // Number of 16-bit words per instruction space in flash.
-#define WORDS_PER_INSTRUCTION 2U
+#define WORDS_PER_INSTRUCTION (2U)
 
 // Number of instructions used to store the UDID.
-#define UDID_LENGTH 5U
+#define UDID_LENGTH (5U)
 
 // The address offset of the least-significant double-word of the UDID.
-#define UDID_FIRST_ADDRESS 0x801200
+#define UDID_FIRST_ADDRESS (0x801200UL)
 
 // The address of the most-significant double-word of the UDID.
 #define UDID_LAST_ADDRESS \
     (UDID_FIRST_ADDRESS + (WORDS_PER_INSTRUCTION * (UDID_LENGTH - 1U)))
 
 // Number of instructions used to store the application version.
-#define APP_VERSION_LENGTH 2U
+#define APP_VERSION_LENGTH (2U)
 
 // The address of the most significant double-word of the application version.
 #define APP_VERSION_LAST_ADDRESS \
     (APP_VERSION_FIRST_ADDRESS + \
     (WORDS_PER_INSTRUCTION * (APP_VERSION_LENGTH - 1U)))
+
+// Index of the message type in all messages.
+#define MSG_TYPE_INDEX (0U)
+
+// Index of the response code in the response message.
+#define MSG_RESP_INDEX (1U)
+
+// Length of the data info message.
+#define DATA_INFO_MSG_LENGTH (24U)
+
+// Length of the erase command message.
+#define ERASE_MESSAGE_LENGTH (9U)
+
+// Byte index of the start address in the erase command message.
+#define ERASE_START_ADDR_INDEX (1U)
+
+// Byte index of the end address in the erase command message.
+#define ERASE_END_ADDR_INDEX (5U)
+
 
 static void on_serial_error(serial_status_t error);
 static void on_serial_msg_received(const uint8_t *data, uint16_t length);
@@ -82,6 +97,11 @@ void messages_init(void)
  * Serial Callbacks
  ******************************************************************************/
 
+/*
+ * Callback invoked when a serial error occurs.
+ *
+ * Sends a new response message containing the corresponding error code.
+ */
 static void on_serial_error(serial_status_t error)
 {
     msg_response_t response = MESSAGE_RESP_OK;
@@ -102,6 +122,12 @@ static void on_serial_error(serial_status_t error)
     }
 }
 
+/*
+ * Callback invoked when a complete message packet is received via serial.
+ *
+ * This will parse the message, perform any requested actions, and send the
+ * appropriate response.  This is where most of the application logic happens.
+ */
 static void on_serial_msg_received(const uint8_t *data, uint16_t length)
 {
     if (length == 0)
@@ -128,6 +154,12 @@ static void on_serial_msg_received(const uint8_t *data, uint16_t length)
  * Message Handlers
  ******************************************************************************/
 
+/*
+ * Handle the device info request message.
+ *
+ * This will read the deivce info (serial number, bootloader version, app
+ * version) and send them in response.
+ */
 static void handle_device_info_request(const uint8_t *data, uint16_t length)
 {
     if (length > 1)
@@ -156,10 +188,12 @@ static void handle_device_info_request(const uint8_t *data, uint16_t length)
     }
 }
 
-#define ERASE_MESSAGE_LENGTH 9
-#define ERASE_START_ADDR_INDEX 1
-#define ERASE_END_ADDR_INDEX 5
-
+/*
+ * Handle the erase message.
+ *
+ * This will check the start/end addresses in the command message, and erase the
+ * corresponding region of flash.
+ */
 static void handle_erase(const uint8_t *data, uint16_t length)
 {
     if (length > ERASE_MESSAGE_LENGTH)
@@ -176,15 +210,14 @@ static void handle_erase(const uint8_t *data, uint16_t length)
         return;
     }
 
-    // Got correct number of bytes for the erase message.  Decode the addresses.
+    // Got correct number of bytes for the erase message.
     uint32_t start_address = 0;
-    uint32_t end_address = 0;
-
     start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 0] << 24;
     start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 1] << 16;
     start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 2] << 8;
     start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 3] << 0;
 
+    uint32_t end_address = 0;
     end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 0] << 24;
     end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 1] << 16;
     end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 2] << 8;
@@ -227,6 +260,12 @@ static void handle_erase(const uint8_t *data, uint16_t length)
  * Helper Functions
  ******************************************************************************/
 
+/*
+ * Send a response message.
+ *
+ * This should be called exactly once for each message that is received, except
+ * in the case of device info, which has a separate response.
+ */
 static void send_response(msg_response_t response)
 {
     uint8_t resp_msg[] = {MESSAGE_TYPE_CMD_RESULT, (uint8_t)response};
@@ -234,6 +273,12 @@ static void send_response(msg_response_t response)
 }
 
 
+/*
+ * Read the device serial number from flash.
+ *
+ * The serial number will be read into the buffer provided, and the index will
+ * be incremented accordingly.
+ */
 static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index)
 {
     uint32_t address;
@@ -253,6 +298,13 @@ static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index)
     return ret;
 }
 
+/*
+ * Read the application version from flash.
+ *
+ * The app version is stored in a pre-defined location in flash to allow it to
+ * be accessed from the bootloader.  It will be read into the buffer provided,
+ * and the index will be incremented accordingly.
+ */
 static flash_status_t read_application_version(uint8_t *msg, uint8_t *index)
 {
     uint32_t address;
