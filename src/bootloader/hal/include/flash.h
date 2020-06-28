@@ -12,8 +12,6 @@
 
 #include <stdint.h>
 
-extern uint32_t _APPLICATION_IVT_BASE;
-
 // Number of instruction words in a row of flash.
 #define WORDS_PER_ROW (128U)
 
@@ -27,7 +25,7 @@ extern uint32_t _APPLICATION_IVT_BASE;
 #define DOUBLE_WORD_SIZE (4U)
 
 // Number of memory locations per row of flash.
-#define ROW_SIZE (WORDS_PER_ROW * DOUBLE_WORD_SIZE)
+#define ROW_SIZE (WORDS_PER_ROW * INSTR_WORD_SIZE)
 
 // Number of memory locations per page of flash.
 #define PAGE_SIZE (ROW_SIZE * ROWS_PER_PAGE)
@@ -51,7 +49,7 @@ extern uint32_t _APPLICATION_IVT_BASE;
 #define MAX_READ_ADDRESS (0x00FFFFFFUL)
 
 // Minimum valid address for application space.
-#define MIN_ADDRESS (_APPLICATION_IVT_BASE)
+#define MIN_ADDRESS (APP_PARTITION_FIRST_ADDRESS)
 
 /*
  * Status values returned from the flash functions.
@@ -62,6 +60,32 @@ typedef enum flash_status_e {
     FLASH_OUT_OF_RANGE = -2,
     FLASH_WRITE_ERROR = -3,
 } flash_status_t;
+
+#ifdef TEST
+
+// The address of the first word of the application version in flash.
+extern const uint32_t APP_VERSION_FIRST_ADDRESS;
+
+// The address of the first word of the application partition in flash.
+extern const uint32_t APP_PARTITION_FIRST_ADDRESS;
+
+// The address of the first word of the configuration page.
+extern const uint32_t CONFIGURATION_PAGE_FIRST_ADDRESS;
+
+#else
+
+// Define macros from symbols in linker script.
+__prog__ __attribute__((space(prog))) extern uint8_t _APP_VERSION;
+__prog__ __attribute__((space(prog))) extern uint8_t _APPLICATION_IVT_BASE;
+__prog__ __attribute__((space(prog))) extern uint8_t _CONFIGURATION_PAGE_BASE;
+
+#define ADDR_OF(s) ((uint32_t)&(s) & 0x00FFFFFFUL)
+
+#define APP_VERSION_FIRST_ADDRESS (ADDR_OF(_APP_VERSION))
+#define APP_PARTITION_FIRST_ADDRESS (ADDR_OF(_APPLICATION_IVT_BASE))
+#define CONFIGURATION_PAGE_FIRST_ADDRESS (ADDR_OF(_CONFIGURATION_PAGE_BASE))
+
+#endif
 
 /*
  * Erase a page of flash memory.

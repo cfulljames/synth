@@ -21,7 +21,9 @@ uint16_t m_send_length;
 
 // The actual definition for this valus is in the linker script, but we can't
 // use that for testing when building for the host platform.
-uint32_t APP_VERSION_FIRST_ADDRESS = 0x015EFC;
+const uint32_t APP_VERSION_FIRST_ADDRESS = 0x0157FC;
+const uint32_t APP_PARTITION_FIRST_ADDRESS = 0x01000;
+const uint32_t CONFIGURATION_PAGE_FIRST_ADDRESS = 0x15800;
 
 #define RECEIVE_MESSAGE(m) m_msg_cb((m), sizeof(m))
 
@@ -144,6 +146,19 @@ void test_invalid_message_type(void)
     TEST_ASSERT_SENT(expected);
 }
 
+void test_empty_message(void)
+{
+    uint8_t dummy;
+
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_SHORT,
+    };
+
+    m_msg_cb(&dummy, 0);
+    TEST_ASSERT_SENT(expected);
+}
+
 /******************************************************************************
  * Device Info
  ******************************************************************************/
@@ -222,10 +237,170 @@ void test_device_info_success(void)
     TEST_ASSERT_SENT(expected);
 }
 
-/*
- * request device info serial flash error
- * request device info app version flash error
- */
+/******************************************************************************
+ * Erase
+ ******************************************************************************/
+
+void test_erase_data_too_long(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x01, 0x01, 0x01, 0x01, // Start Address
+        0x01, 0x01, 0x01, 0x01, // End Address
+        0xAB, // Extra byte
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_LONG,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_erase_data_too_short(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x01, 0x01, 0x01, 0x01, // Start Address
+        0x01, 0x01, 0x01, // End Address with missing byte
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_SHORT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_erase_start_address_not_aligned(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x00, 0x00, 0x24, 0x00, // Start Address (misaligned)
+        0x00, 0x01, 0x00, 0x00, // End Address
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_erase_start_address_too_low(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x00, 0x00, 0x08, 0x00, // Start Address (out of range)
+        0x00, 0x01, 0x00, 0x00, // End Address
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_erase_end_address_not_aligned(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x00, 0x00, 0x18, 0x00, // Start Address
+        0x00, 0x01, 0x24, 0x00, // End Address (misaligned)
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_erase_end_address_too_high(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x00, 0x00, 0x18, 0x00, // Start Address
+        0x00, 0x01, 0x60, 0x00, // End Address (out of range)
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_erase_start_address_equals_end(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x00, 0x00, 0x18, 0x00, // Start Address
+        0x00, 0x00, 0x18, 0x00, // End Address
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_erase_start_address_greater_than_end(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x00, 0x00, 0x28, 0x00, // Start Address
+        0x00, 0x00, 0x18, 0x00, // End Address
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_erase_success(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x00, 0x00, 0x10, 0x00, // Start Address
+        0x00, 0x01, 0x58, 0x00, // End Address
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_OK,
+    };
+
+    for (int addr = 0x1000; addr < 0x15800; addr += 0x800)
+    {
+        flash_erase_page_ExpectAndReturn(addr, FLASH_OK);
+    }
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_erase_fail(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_ERASE,
+        0x00, 0x00, 0x18, 0x00, // Start Address
+        0x00, 0x00, 0x28, 0x00, // End Address
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_INTERNAL_ERROR,
+    };
+
+    // Should only be called once due to failure status.
+    flash_erase_page_ExpectAndReturn(0x1800, FLASH_WRITE_ERROR);
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
 
 /******************************************************************************
  * Fake Serial Functions
@@ -260,9 +435,6 @@ static serial_status_t fake_serial_send(
  *
  * TESTS
  *
- * empty message (length = 0)
- *
- * erase bad message length
  * erase start address not aligned
  * erase end address not aligned
  * erase start address out of range
@@ -273,7 +445,6 @@ static serial_status_t fake_serial_send(
  * write bad message length
  * write bad data length
  * write start address not aligned
- * write end address not aligned
  * write start address out of range
  * write end address out of range
  * write flash fail

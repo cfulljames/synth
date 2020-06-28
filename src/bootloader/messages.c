@@ -48,6 +48,7 @@ static void on_serial_error(serial_status_t error);
 static void on_serial_msg_received(const uint8_t *data, uint16_t length);
 static void send_response(msg_response_t response);
 static void handle_device_info_request(const uint8_t *data, uint16_t length);
+static void handle_erase(const uint8_t *data, uint16_t length);
 static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index);
 static flash_status_t read_application_version(uint8_t *msg, uint8_t *index);
 
@@ -67,21 +68,19 @@ struct serial_error_response_s error_responses[] = {
 #define ERROR_RESPONSES_LENGTH ( \
         sizeof(error_responses) / sizeof(struct serial_error_response_s))
 
-#ifdef TEST
-// Address defined in test code.
-extern const uint32_t APP_VERSION_FIRST_ADDRESS;
-#else
-// Address defined in linker script.
-__prog__ __attribute__((space(prog)))
-extern uint8_t _APP_VERSION;
-const uint32_t APP_VERSION_FIRST_ADDRESS = ((uint32_t)&_APP_VERSION);
-#endif
+/******************************************************************************
+ * Interface Functions
+ ******************************************************************************/
 
 void messages_init(void)
 {
     serial_set_error_callback(on_serial_error);
     serial_set_msg_received_callback(on_serial_msg_received);
 }
+
+/******************************************************************************
+ * Serial Callbacks
+ ******************************************************************************/
 
 static void on_serial_error(serial_status_t error)
 {
@@ -105,10 +104,19 @@ static void on_serial_error(serial_status_t error)
 
 static void on_serial_msg_received(const uint8_t *data, uint16_t length)
 {
+    if (length == 0)
+    {
+        send_response(MESSAGE_RESP_MESSAGE_TOO_SHORT);
+        return;
+    }
+
     switch (data[MSG_TYPE_INDEX])
     {
         case MESSAGE_TYPE_DEVICE_INFO_REQUEST:
             handle_device_info_request(data, length);
+            break;
+        case MESSAGE_TYPE_ERASE:
+            handle_erase(data, length);
             break;
         default:
             send_response(MESSAGE_RESP_INVALID_TYPE);
@@ -116,11 +124,9 @@ static void on_serial_msg_received(const uint8_t *data, uint16_t length)
     }
 }
 
-static void send_response(msg_response_t response)
-{
-    uint8_t resp_msg[] = {MESSAGE_TYPE_CMD_RESULT, (uint8_t)response};
-    serial_send(resp_msg, sizeof(resp_msg));
-}
+/******************************************************************************
+ * Message Handlers
+ ******************************************************************************/
 
 static void handle_device_info_request(const uint8_t *data, uint16_t length)
 {
@@ -149,6 +155,84 @@ static void handle_device_info_request(const uint8_t *data, uint16_t length)
         serial_send(msg, sizeof(msg));
     }
 }
+
+#define ERASE_MESSAGE_LENGTH 9
+#define ERASE_START_ADDR_INDEX 1
+#define ERASE_END_ADDR_INDEX 5
+
+static void handle_erase(const uint8_t *data, uint16_t length)
+{
+    if (length > ERASE_MESSAGE_LENGTH)
+    {
+        // Extra trailing bytes in the message.
+        send_response(MESSAGE_RESP_MESSAGE_TOO_LONG);
+        return;
+    }
+
+    if (length < ERASE_MESSAGE_LENGTH)
+    {
+        // Not enough bytes to decode addresses.
+        send_response(MESSAGE_RESP_MESSAGE_TOO_SHORT);
+        return;
+    }
+
+    // Got correct number of bytes for the erase message.  Decode the addresses.
+    uint32_t start_address = 0;
+    uint32_t end_address = 0;
+
+    start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 0] << 24;
+    start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 1] << 16;
+    start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 2] << 8;
+    start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 3] << 0;
+
+    end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 0] << 24;
+    end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 1] << 16;
+    end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 2] << 8;
+    end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 3] << 0;
+
+    if ((start_address % PAGE_SIZE != 0) || (end_address % PAGE_SIZE != 0))
+    {
+        // One of the addresses does not align with a page boundary.
+        send_response(MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT);
+        return;
+    }
+    else if (start_address < APP_PARTITION_FIRST_ADDRESS
+            || end_address > CONFIGURATION_PAGE_FIRST_ADDRESS
+            || start_address >= end_address)
+    {
+        // At least one of the addresses is outside the range of erasable flash.
+        send_response(MESSAGE_RESP_ADDRESS_OUT_OF_RANGE);
+        return;
+    }
+
+    // Addresses are valid; erase the flash.
+    uint32_t page_start;
+    flash_status_t status;
+    for (page_start = start_address;
+            page_start < end_address;
+            page_start += PAGE_SIZE)
+    {
+        status = flash_erase_page(page_start);
+        if (status != FLASH_OK)
+        {
+            send_response(MESSAGE_RESP_INTERNAL_ERROR);
+            return;
+        }
+    }
+
+    send_response(MESSAGE_RESP_OK);
+}
+
+/******************************************************************************
+ * Helper Functions
+ ******************************************************************************/
+
+static void send_response(msg_response_t response)
+{
+    uint8_t resp_msg[] = {MESSAGE_TYPE_CMD_RESULT, (uint8_t)response};
+    serial_send(resp_msg, sizeof(resp_msg));
+}
+
 
 static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index)
 {
