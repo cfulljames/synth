@@ -25,6 +25,7 @@ SECTIONS
         KEEP (*(.isr*));
         *(.libc) *(.libm) *(.libdsp);  /* keep together in this order */
         *(.lib*);
+        *(.dinit*);
         *(.text*);
     } > bootloader
 

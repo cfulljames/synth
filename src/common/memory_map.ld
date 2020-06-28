@@ -77,20 +77,42 @@ MEMORY
     /* Bootloader Code */
     bootloader (xr)  : ORIGIN = 0x200,         LENGTH = 0x00E00
 
-    /* Application Interrupt Vector Table (must be page-aligned)  */
+    /*
+     * Application Alternate Interrupt Vector Table (must be page-aligned)
+     *
+     * By enabling the AIVT, the remainder of this page becomes unusable,
+     * forcing the application to start at the beginning of the next page.
+     */
     application_ivt  : ORIGIN = 0x1000,        LENGTH = 0x1FC
 
-    /* Appliction Code (must be page-aligned) */
-    application (xr) : ORIGIN = 0x1800,        LENGTH = 0x14700
+    /* Appliction Code (must be page-aligned due to AIVT in previous page) */
+    application (xr) : ORIGIN = 0x1800,        LENGTH = 0x13FF8
 
-    /* Application Valid Status */
-    app_valid   (xr) : ORIGIN = 0x15EF8,       LENGTH = 0x4
+    /*
+     * Application Valid Status
+     *
+     * This is used by the bootloader to determine if an app has been marked as
+     * valid.  Since the application version is in the same page, this page will
+     * always be erased before loading a new application.  If this value is
+     * unmodified after erasure, the app is deemed invalid and the will not be
+     * started until a run command is received.
+     */
+    app_valid   (xr) : ORIGIN = 0x157F8,       LENGTH = 0x4
 
-    /* Application Software Version */
-    app_version (xr) : ORIGIN = 0x15EFC,       LENGTH = 0x4
+    /*
+     * Application Software Version
+     *
+     * The application version is placed in the same page as the Application
+     * Valid Status to force the latter to be erased each time a new application
+     * is loaded via the bootloader.
+     */
+    app_version (xr) : ORIGIN = 0x157FC,       LENGTH = 0x4
 
-    /* Special program region; unused. */
-    program          : ORIGIN = 0x0,           LENGTH = 0x0
+    /*
+     * The last page (ORIGIN = 0x15800) is reserved for the configuration
+     * registers.  This does result in a couple unusable KB, but simplifies the
+     * bootloader significantly by preventing this page from being modified.
+     */
 
     /* Configuration Registers */
     FSEC             : ORIGIN = 0x15F00,       LENGTH = 0x2
@@ -122,6 +144,13 @@ MEMORY
     FS1ICD           : ORIGIN = 0x15F90,       LENGTH = 0x2
     FS1DEVOPT        : ORIGIN = 0x15F94,       LENGTH = 0x2
     FS1ALTREG        : ORIGIN = 0x15F98,       LENGTH = 0x2
+
+    /*
+     * The linker assumes the existance of a "program" region as the default
+     * ouput region for code (e.g. .text and friends).  This is assigned a
+     * length of zero to force manual sequential allocation.
+     */
+    program          : ORIGIN = 0x0,           LENGTH = 0x0
 }
 
 /******************************************************************************
@@ -132,18 +161,20 @@ MEMORY
  * The application valid status.  This is updated by the bootloader after
  * verifying the application.
  */
-__APP_VALID = 0x15EF8;
+__APP_VALID = 0x157F8;
 
 /*
  * The application version number.  Needs to be accessible from the bootloader
  * for reporting.
  */
-__APP_VERSION = 0x15EFC;
+__APP_VERSION = 0x157FC;
 
 
 /******************************************************************************
  * Configuration Registers
  ******************************************************************************/
+
+__CONFIGURATION_PAGE_BASE = 0x15800;
 
 __FSEC = 0x15F00;
 __FBSLIM = 0x15F10;
@@ -181,11 +212,11 @@ __FS1ALTREG = 0x15F98;
 
 __BOOTLOADER_IVT_BASE = 0x4;
 __BOOTLOADER_CODE_BASE = 0x200;
-__BOOTLOADER_CODE_LENGTH = 0x600;
+__BOOTLOADER_CODE_LENGTH = 0xE00;
 
-__APPLICATION_IVT_BASE = 0x800;
-__APPLICATION_CODE_BASE = 0x1000;
-__APPLICATION_CODE_LENGTH = 0x14F00;
+__APPLICATION_IVT_BASE = 0x1000;
+__APPLICATION_CODE_BASE = 0x1800;
+__APPLICATION_CODE_LENGTH = 0x13FF8;
 
 __DATA_BASE = 0x1000;
 __DATA_LENGTH = 0x4000;
