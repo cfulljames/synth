@@ -53,9 +53,11 @@ Messages
 - 0x12: Message Error: Message Data Too Short for Type
 - 0x13: Message Error: One or more addresses have incorrect alignment
 - 0x14: Message Error: One or more addresses are out of range
+- 0x20: Verification Failure: Calculated CRC does not match
 - 0xFF: Internal Error: An unexpected error occurred
 
-### Erase
+
+### Erase Page
 - Type Code = 0x01
 - Response: After Processing
 - Direction: Host -> Device
@@ -67,13 +69,13 @@ Messages
 +---------------+---------------+---------------+
 
 
-### Write
+### Write Row
 - Type Code = 0x02
 - Response: After Processing
 - Direction: Host -> Device
 
 +---------------+---------------+---------------+
-|    8 bits     |    32 bits    |    n bytes    |
+|    8 bits     |    32 bits    |   512 bytes   |
 +---------------+---------------+---------------+
 |   Type Code   | Start Address |     Data      |
 +---------------+---------------+---------------+
@@ -132,4 +134,16 @@ BL/App version number format:
 |    8 bits     |    8 bits     |    16 bits    |
 +---------------+---------------+---------------+
 |     Major     |     Minor     |     Patch     |
++---------------+---------------+---------------+
+
+
+### Write Double Word
+- Type Code = 0x07
+- Response: After Processing
+- Direction: Host -> Device
+
++---------------+---------------+---------------+
+|    8 bits     |    32 bits    |    8 bytes    |
++---------------+---------------+---------------+
+|   Type Code   | Start Address |     Data      |
 +---------------+---------------+---------------+

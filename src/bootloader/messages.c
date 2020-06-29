@@ -1,6 +1,7 @@
+#include "crc.h"
+#include "flash.h"
 #include "messages.h"
 #include "serial.h"
-#include "flash.h"
 #include "version.h"
 #include <stddef.h>
 
@@ -58,14 +59,30 @@
 // Byte index of the end address in the erase command message.
 #define ERASE_END_ADDR_INDEX (5U)
 
+// Length of the verify command message.
+#define VERIFY_MSG_LENGTH (13U)
+
+// Byte index of the start address in the verify command message.
+#define VERIFY_START_ADDR_INDEX (1U)
+
+// Byte index of the end address in the verify command message.
+#define VERIFY_END_ADDR_INDEX (5U)
+
+// Index of the CRC in the verify command message.
+#define VERIFY_CRC_INDEX (9U)
 
 static void on_serial_error(serial_status_t error);
 static void on_serial_msg_received(const uint8_t *data, uint16_t length);
 static void send_response(msg_response_t response);
 static void handle_device_info_request(const uint8_t *data, uint16_t length);
 static void handle_erase(const uint8_t *data, uint16_t length);
+static void handle_verify(const uint8_t *data, uint16_t length);
 static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index);
 static flash_status_t read_application_version(uint8_t *msg, uint8_t *index);
+static uint32_t unpack_long(const uint8_t *data);
+static void pack_long(uint32_t value, uint8_t *data);
+static flash_status_t calculate_flash_crc(
+        uint32_t start_address, uint32_t end_address, uint32_t *crc);
 
 struct serial_error_response_s {
     serial_status_t serial_status;
@@ -144,6 +161,9 @@ static void on_serial_msg_received(const uint8_t *data, uint16_t length)
         case MESSAGE_TYPE_ERASE:
             handle_erase(data, length);
             break;
+        case MESSAGE_TYPE_VERIFY:
+            handle_verify(data, length);
+            break;
         default:
             send_response(MESSAGE_RESP_INVALID_TYPE);
             break;
@@ -210,18 +230,9 @@ static void handle_erase(const uint8_t *data, uint16_t length)
         return;
     }
 
-    // Got correct number of bytes for the erase message.
-    uint32_t start_address = 0;
-    start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 0] << 24;
-    start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 1] << 16;
-    start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 2] << 8;
-    start_address |= (uint32_t)data[ERASE_START_ADDR_INDEX + 3] << 0;
-
-    uint32_t end_address = 0;
-    end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 0] << 24;
-    end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 1] << 16;
-    end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 2] << 8;
-    end_address |= (uint32_t)data[ERASE_END_ADDR_INDEX + 3] << 0;
+    // Got correct number of bytes for the message.
+    uint32_t start_address = unpack_long(&data[ERASE_START_ADDR_INDEX]);
+    uint32_t end_address = unpack_long(&data[ERASE_END_ADDR_INDEX]);
 
     if ((start_address % PAGE_SIZE != 0) || (end_address % PAGE_SIZE != 0))
     {
@@ -254,6 +265,59 @@ static void handle_erase(const uint8_t *data, uint16_t length)
     }
 
     send_response(MESSAGE_RESP_OK);
+}
+
+
+static void handle_verify(const uint8_t *data, uint16_t length)
+{
+    if (length > VERIFY_MSG_LENGTH)
+    {
+        send_response(MESSAGE_RESP_MESSAGE_TOO_LONG);
+        return;
+    }
+    else if (length < VERIFY_MSG_LENGTH)
+    {
+        send_response(MESSAGE_RESP_MESSAGE_TOO_SHORT);
+        return;
+    }
+
+    // Got correct number of bytes for the message.
+    uint32_t start_address = unpack_long(&data[ERASE_START_ADDR_INDEX]);
+    uint32_t end_address = unpack_long(&data[ERASE_END_ADDR_INDEX]);
+
+    if ((start_address % INSTR_WORD_SIZE != 0)
+            || (end_address % INSTR_WORD_SIZE != 0))
+    {
+        // At least one address is not word-aligned.
+        send_response(MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT);
+    }
+    else if (end_address > (MAX_READ_ADDRESS + INSTR_WORD_SIZE)
+            || start_address >= end_address)
+    {
+        // At least one address is out of range.
+        send_response(MESSAGE_RESP_ADDRESS_OUT_OF_RANGE);
+    }
+    else
+    {
+        // Addresses are valid; read the flash and calculate the CRC.
+        uint32_t expected_crc = unpack_long(&data[VERIFY_CRC_INDEX]);
+        flash_status_t status;
+        uint32_t actual_crc;
+        status = calculate_flash_crc(start_address, end_address, &actual_crc);
+
+        if (status != FLASH_OK)
+        {
+            send_response(MESSAGE_RESP_INTERNAL_ERROR);
+        }
+        else if (actual_crc == expected_crc)
+        {
+            send_response(MESSAGE_RESP_OK);
+        }
+        else
+        {
+            send_response(MESSAGE_RESP_VERIFICATION_FAIL);
+        }
+    }
 }
 
 /******************************************************************************
@@ -321,4 +385,70 @@ static flash_status_t read_application_version(uint8_t *msg, uint8_t *index)
     }
 
     return ret;
+}
+
+/*
+ * Calculate the CRC32 for a region of flash memory.
+ */
+static flash_status_t calculate_flash_crc(
+        uint32_t start_address, uint32_t end_address, uint32_t *crc)
+{
+    flash_status_t status;
+    crc_seed();
+    uint32_t addr;
+    for (addr = start_address; addr < end_address; addr += INSTR_WORD_SIZE)
+    {
+        // Read the next word from flash.
+        uint32_t flash_word;
+        status = flash_read_word(addr, &flash_word);
+
+        if (status != FLASH_OK)
+        {
+            // Flash failure occurred; stop reading.
+            return status;
+        }
+
+        // Convert the data to an array of bytes so it can be passed to the
+        // CRC calculate function.
+        uint8_t flash_word_packed[sizeof(uint32_t)];
+        pack_long(flash_word, flash_word_packed);
+
+        // Add this word to the CRC calculation.
+        crc_calculate(flash_word_packed, sizeof(uint32_t));
+    }
+
+    // Get the CRC result and compare it to the expected value from the
+    // message.
+    *crc = crc_get_result();
+
+    return status;
+}
+
+/*
+ * Unpack an unsigned long integer from a message data byte array.
+ *
+ * This can be used for addresses, CRCs, etc.  Most data in the bootloader
+ * protocol is sent as 32-bit unsigned integers.
+ */
+static uint32_t unpack_long(const uint8_t *data)
+{
+    uint32_t result = 0;
+    result |= (uint32_t)data[0] << 24;
+    result |= (uint32_t)data[1] << 16;
+    result |= (uint32_t)data[2] << 8;
+    result |= (uint32_t)data[3] << 0;
+    return result;
+}
+
+/*
+ * Pack an unsigned long integer into a byte array.
+ *
+ * This is the opposite of unpack_long.
+ */
+static void pack_long(uint32_t value, uint8_t *data)
+{
+    data[0] = value >> 24;
+    data[1] = value >> 16;
+    data[2] = value >> 8;
+    data[3] = value >> 0;
 }

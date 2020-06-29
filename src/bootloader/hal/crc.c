@@ -55,15 +55,15 @@ void crc_deinit(void)
     CRCWDATH = 0;
 }
 
-uint32_t crc_calculate(const uint8_t *data, uint32_t length)
+void crc_seed(void)
 {
     // Set the CRC starting value.
     CRCWDATL = CRC_SEED & 0x0000FFFF;
     CRCWDATH = CRC_SEED >> 16;
+}
 
-    // Calculate the CRC for all but the last byte of data.  The last byte
-    // requires some special care to ensure we get the result at the right time,
-    // so we'll do that separately below.
+void crc_calculate(const uint8_t *data, uint32_t length)
+{
     while (length-- > 1)
     {
         // Wait for space to become available in the buffer.
@@ -73,22 +73,22 @@ uint32_t crc_calculate(const uint8_t *data, uint32_t length)
         *(uint8_t*)&CRCDATL = *data++;
     }
 
-    // Wait for space to become available in the buffer for the last byte.
-    while (CRCCON1bits.CRCFUL);
+    // This is a critical section; the interrupt flag must be cleared
+    // immediately after placing the last byte of data in the buffer.
+    __builtin_disi(0x3FFF); // Disable interrupts
 
-    // Stop the CRC temporarily.  This ensures that when the interrupt flag is
-    // set below, it's because of the new data, and not some old data that was
-    // already being processed.
-    CRCCON1bits.CRCGO = 0;
+    // Copy the last byte of data.
+    *(uint8_t*)&CRCDATL = *data;
 
-    // Clear the interrupt flag.
+    // Clear the interrupt flag.  When retrieving the result, this will be
+    // checked to see if the computation is complete.
     _CRCIF = 0;
 
-    // Write the last byte of data.
-    *(uint8_t*)&CRCDATL = *data++;
+    __builtin_disi(0); // Enable interrupts
+}
 
-    // Start the CRC back up and wait for the finished flag to be set.
-    CRCCON1bits.CRCGO = 1;
+uint32_t crc_get_result(void)
+{
     while (!_CRCIF);
 
     // Get the result.  Since the data was processed in little endian order, the

@@ -403,6 +403,212 @@ void test_erase_fail(void)
 }
 
 /******************************************************************************
+ * Verify
+ ******************************************************************************/
+
+void test_verify_data_too_long(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x01, 0x01, 0x01, 0x01, // Start Address
+        0x01, 0x01, 0x01, 0x01, // End Address
+        0x01, 0x01, 0x01, 0x01, // CRC
+        0xAB, // Extra byte
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_LONG,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_verify_data_too_short(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x01, 0x01, 0x01, 0x01, // Start Address
+        0x01, 0x01, 0x01, 0x01, // End Address
+        0x01, 0x01, 0x01, // CRC with missing byte
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_SHORT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_verify_start_address_not_aligned(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x00, 0x00, 0x24, 0x01, // Start Address (misaligned)
+        0x00, 0x01, 0x00, 0x00, // End Address
+        0x00, 0x01, 0x00, 0x00, // CRC
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+
+void test_verify_end_address_not_aligned(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x00, 0x00, 0x18, 0x00, // Start Address
+        0x00, 0x01, 0x24, 0x01, // End Address (misaligned)
+        0x00, 0x01, 0x24, 0x00, // CRC
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_verify_end_address_too_high(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x00, 0x00, 0x18, 0x00, // Start Address
+        0x01, 0x00, 0x00, 0x02, // End Address (out of range)
+        0x01, 0x00, 0x00, 0x00, // CRC
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_verify_start_address_equals_end(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x00, 0x00, 0x18, 0x00, // Start Address
+        0x00, 0x00, 0x18, 0x00, // End Address
+        0x00, 0x00, 0x18, 0x00, // CRC
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_verify_start_address_greater_than_end(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x00, 0x00, 0x28, 0x00, // Start Address
+        0x00, 0x00, 0x18, 0x00, // End Address
+        0x00, 0x00, 0x18, 0x00, // CRC
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_verify_success(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x00, 0xFF, 0xF0, 0x00, // Start Address
+        0x01, 0x00, 0x00, 0x00, // End Address
+        0xBA, 0xDD, 0xF0, 0x0D, // CRC
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_OK,
+    };
+
+    // Should read flash and calculate CRC.
+    crc_seed_Expect();
+    uint8_t expected_data[] = {0xAB, 0xCD, 0xCA, 0xFE};
+    uint32_t return_data = 0xABCDCAFE;
+    for (int addr = 0x00FFF000; addr < 0x01000000; addr += 2)
+    {
+        flash_read_word_ExpectAndReturn(addr, NULL, FLASH_OK);
+        flash_read_word_IgnoreArg_data();
+        flash_read_word_ReturnThruPtr_data(&return_data);
+        crc_calculate_ExpectWithArray(expected_data, 4, 4);
+    }
+    crc_get_result_ExpectAndReturn(0xBADDF00D);
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_verify_crc_fail(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x00, 0x00, 0x20, 0x00, // Start Address
+        0x00, 0x00, 0x38, 0x02, // End Address
+        0xBA, 0xDD, 0xF0, 0x0D, // CRC
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_VERIFICATION_FAIL,
+    };
+
+    // Should read flash and calculate CRC.
+    crc_seed_Expect();
+    uint8_t expected_data[] = {0xAB, 0xCD, 0xCA, 0xFE};
+    uint32_t return_data = 0xABCDCAFE;
+    for (int addr = 0x2000; addr < 0x3802; addr += 2)
+    {
+        flash_read_word_ExpectAndReturn(addr, NULL, FLASH_OK);
+        flash_read_word_IgnoreArg_data();
+        flash_read_word_ReturnThruPtr_data(&return_data);
+        crc_calculate_ExpectWithArray(expected_data, 4, 4);
+    }
+
+    // Return wrong CRC
+    crc_get_result_ExpectAndReturn(0xCAFECAFE);
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_verify_flash_error(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_VERIFY,
+        0x00, 0x00, 0x18, 0x00, // Start Address
+        0x00, 0x00, 0x28, 0x00, // End Address
+        0x00, 0x00, 0x28, 0x00, // CRC
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_INTERNAL_ERROR,
+    };
+
+    crc_seed_Expect();
+    uint8_t expected_data[] = {0xAB, 0xCD, 0xCA, 0xFE};
+    uint32_t return_data = 0xABCDCAFE;
+    flash_read_word_ExpectAndReturn(0x1800, NULL, FLASH_BAD_ALIGNMENT);
+    flash_read_word_IgnoreArg_data();
+    flash_read_word_ReturnThruPtr_data(&return_data);
+
+    // Should not calculate CRC; should instead immediately send error.
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+/******************************************************************************
  * Fake Serial Functions
  ******************************************************************************/
 
@@ -435,33 +641,23 @@ static serial_status_t fake_serial_send(
  *
  * TESTS
  *
- * erase start address not aligned
- * erase end address not aligned
- * erase start address out of range
- * erase end address out of range
- * erase flash fail
- * erase success
+ * write row message too short
+ * write row message too long
+ * write row start address not aligned
+ * write row start address too low
+ * write row start address too high
+ * write row flash fail
+ * write row success
  *
- * write bad message length
- * write bad data length
- * write start address not aligned
- * write start address out of range
- * write end address out of range
- * write flash fail
- * write success
- *
- * verify bad message length
- * verify start address not aligned
- * verify end address not aligned
- * verify start address out of range
- * verify end address out of range
- * verify fail
- * verify success
+ * write dword message too short
+ * write dword message too long
+ * write dword start address not aligned
+ * write dword start address too low
+ * write dword start address too high
+ * write dword flash fail
+ * write dword success
  *
  * run bad message length
  * run app not ready
  * run success
- *
- * request device info bad message length
- * request device info success
  */

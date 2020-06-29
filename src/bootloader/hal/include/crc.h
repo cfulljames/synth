@@ -31,6 +31,21 @@ void crc_deinit(void);
  *
  * This always re-seeds the CRC, so any previous result is overwritten.
  */
-uint32_t crc_calculate(const uint8_t *data, uint32_t length);
+void crc_calculate(const uint8_t *data, uint32_t length);
+
+/*
+ * Seed the CRC to start a new calculation.
+ *
+ * This should be called at the beginning of each new set of data.
+ */
+void crc_seed(void);
+
+/*
+ * Get the CRC calculation result.
+ *
+ * This should be called at the end of each set of data to retrieve the
+ * calculated CRC value.
+ */
+uint32_t crc_get_result(void);
 
 #endif

@@ -71,8 +71,10 @@ void test_send_max_length(void)
     cobs_length = cobs_encode(data, sizeof(data), cobs_data);
 
     // Should calculate CRC.
-    crc_calculate_ExpectAndReturn(NULL, 32, 0xBADDF00D);
+    crc_seed_Expect();
+    crc_calculate_Expect(NULL, 32);
     crc_calculate_IgnoreArg_data();
+    crc_get_result_ExpectAndReturn(0xBADDF00D);
 
     // Should send each byte of data.
     for (int i = 0; i < cobs_length; i ++)
@@ -177,7 +179,9 @@ void test_packet_crc_check_fail(void)
     inject_uart_byte(&data[sizeof(data) - 1]);
 
     // CRC returns 00 00 00 00, data contains 01 01 01 01, check should fail.
-    crc_calculate_ExpectAnyArgsAndReturn(0x00000000);
+    crc_seed_Expect();
+    crc_calculate_ExpectAnyArgs();
+    crc_get_result_ExpectAndReturn(0x00000000);
 
     serial_update();
 
@@ -257,7 +261,9 @@ void test_valid_packet(void)
     inject_uart_byte(&data[sizeof(data) - 1]);
 
     // CRC returns 01 02 03 04, data contains 01 02 03 04, check should pass.
-    crc_calculate_ExpectAnyArgsAndReturn(0x01020304);
+    crc_seed_Expect();
+    crc_calculate_ExpectAnyArgs();
+    crc_get_result_ExpectAndReturn(0x01020304);
 
     serial_update();
 
@@ -281,7 +287,9 @@ void test_null_msg_callback(void)
     inject_uart_byte(&data[sizeof(data) - 1]);
 
     // CRC returns 01 02 03 04, data contains 01 02 03 04, check should pass.
-    crc_calculate_ExpectAnyArgsAndReturn(0x01020304);
+    crc_seed_Expect();
+    crc_calculate_ExpectAnyArgs();
+    crc_get_result_ExpectAndReturn(0x01020304);
 
     serial_set_msg_received_callback(NULL);
 
@@ -302,7 +310,9 @@ void test_multiple_packets(void)
     inject_uart_byte(&data[sizeof(data) - 1]);
 
     // CRC returns 01 02 03 04, data contains 01 02 03 04, check should pass.
-    crc_calculate_ExpectAnyArgsAndReturn(0x01020304);
+    crc_seed_Expect();
+    crc_calculate_ExpectAnyArgs();
+    crc_get_result_ExpectAndReturn(0x01020304);
 
     serial_update();
 
@@ -319,7 +329,9 @@ void test_multiple_packets(void)
     inject_uart_byte(&new_data[sizeof(new_data) - 1]);
 
     // CRC returns 02 03 04 05, data contains 02 03 04 05, check should pass.
-    crc_calculate_ExpectAnyArgsAndReturn(0x02030405);
+    crc_seed_Expect();
+    crc_calculate_ExpectAnyArgs();
+    crc_get_result_ExpectAndReturn(0x02030405);
 
     serial_update();
 

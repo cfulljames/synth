@@ -63,7 +63,10 @@ serial_status_t serial_send(const uint8_t *data, uint16_t length)
 
     if (status == SERIAL_OK)
     {
-        crc = crc_calculate(data, length);
+        crc_seed();
+        crc_calculate(data, length);
+        crc = crc_get_result();
+
         memcpy(data_with_crc, data, length);
         data_with_crc[length++] = (uint8_t)((crc & 0xFF000000) >> 24);
         data_with_crc[length++] = (uint8_t)((crc & 0x00FF0000) >> 16);
@@ -195,7 +198,9 @@ static serial_status_t check_crc_for_data(
     uint16_t data_length = decoded_length - CRC_LENGTH;
     serial_status_t status = SERIAL_OK;
 
-    actual_crc = crc_calculate(decoded_data, data_length);
+    crc_seed();
+    crc_calculate(decoded_data, data_length);
+    actual_crc = crc_get_result();
 
     // Read CRC from last four bytes of data.
     uint16_t data_crc_index = data_length;
