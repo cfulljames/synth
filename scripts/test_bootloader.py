@@ -10,11 +10,12 @@ import bootloader_utils
 class MessageType(enum.IntEnum):
     RESPONSE = 0x00
     ERASE = 0x01
-    WRITE = 0x02
+    WRITE_ROW = 0x02
     VERIFY = 0x03
     RUN = 0x04
     REQUEST_DEVICE_INFO = 0x05
     DEVICE_INFO = 0x06
+    WRITE_DWORD = 0x07
 
 class ResponseCode(enum.IntEnum):
 
@@ -59,6 +60,11 @@ def pack_erase_message(start, end):
 def pack_verify_message(start, end, crc):
     fmt = ">LLL"
     return pack_msg(MessageType.VERIFY, struct.pack(fmt, start, end, crc))
+
+def pack_write_dword_message(start, data_l, data_h):
+    fmt = ">LLL"
+    return pack_msg(
+        MessageType.WRITE_DWORD, struct.pack(fmt, start, data_l, data_h))
 
 class BootloaderTestCase(unittest.TestCase):
 
@@ -313,3 +319,79 @@ class TestEraseVerify(BootloaderTestCase):
         # Check the response
         expected = pack_response_msg(ResponseCode.OK)
         self.assertEqual(expected, self.blser.read_packet(3))
+
+class TestWriteDoubleWord(BootloaderTestCase):
+
+    def test_message_too_short(self):
+        # Requires 13 bytes, but only 12 are sent.
+        packet_data = bytes([MessageType.WRITE_DWORD] + [1] * 11)
+        self.blser.write_packet(packet_data)
+
+        expected = pack_response_msg(ResponseCode.DATA_TOO_SHORT)
+        self.assertEqual(expected, self.blser.read_packet())
+
+    def test_message_too_long(self):
+        # Requires 13 bytes, but 14 are sent.
+        packet_data = bytes([MessageType.WRITE_DWORD] + [1] * 13)
+        self.blser.write_packet(packet_data)
+
+        expected = pack_response_msg(ResponseCode.DATA_TOO_LONG)
+        self.assertEqual(expected, self.blser.read_packet())
+
+    def test_start_address_too_high(self):
+        packet_data = pack_write_dword_message(
+            start=0x15800, data_l=0x00ABCDEF, data_h=0x00CAFECAFE)
+        self.blser.write_packet(packet_data)
+
+        expected = pack_response_msg(ResponseCode.ADDR_OUT_OF_RANGE)
+        self.assertEqual(expected, self.blser.read_packet())
+
+    def test_start_address_bad_alignment(self):
+        packet_data = pack_write_dword_message(
+            start=0x1570A, data_l=0x00ABCDEF, data_h=0x00CAFECAFE)
+        self.blser.write_packet(packet_data)
+
+        expected = pack_response_msg(ResponseCode.BAD_ALIGNMENT)
+        self.assertEqual(expected, self.blser.read_packet())
+
+    def test_start_address_too_high(self):
+        packet_data = pack_write_dword_message(
+            start=0x15808, data_l=0x00ABCDEF, data_h=0x00CAFECAFE)
+        self.blser.write_packet(packet_data)
+
+        expected = pack_response_msg(ResponseCode.ADDR_OUT_OF_RANGE)
+        self.assertEqual(expected, self.blser.read_packet())
+
+class TestEraseWriteDoubleWordVerify(BootloaderTestCase):
+
+    def test_erase_write_double_word_verify(self):
+
+        # Erase a section of flash so that it has a known CRC
+        packet_data = pack_erase_message(start=0x2000, end=0x2800)
+        self.blser.write_packet(packet_data)
+
+        # Check the erase response
+        expected = pack_response_msg(ResponseCode.OK)
+        self.assertEqual(expected, self.blser.read_packet())
+
+        # Write a double-word to flash.
+        packet_data = pack_write_dword_message(
+            start=0x2000, data_l=0x00ABCDEF, data_h=0x00CAFEFE)
+        self.blser.write_packet(packet_data)
+
+        # Check the write response.
+        expected = pack_response_msg(ResponseCode.OK)
+        self.assertEqual(expected, self.blser.read_packet())
+
+        # Calculate the expected CRC for newly written flash.
+        data = bytes.fromhex('00 AB CD EF 00 CA FE FE')
+        expected_crc = binascii.crc32(data)
+
+        # Send the verify command
+        packet_data = pack_verify_message(
+            start=0x2000, end=0x2004, crc=expected_crc)
+        self.blser.write_packet(packet_data)
+
+        # Check the response
+        expected = pack_response_msg(ResponseCode.OK)
+        self.assertEqual(expected, self.blser.read_packet())

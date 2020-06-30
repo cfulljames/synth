@@ -31,7 +31,7 @@
 #define PAGE_SIZE (ROW_SIZE * ROWS_PER_PAGE)
 
 // Address at end of user flash (first invalid address).
-#define USER_FLASH_ADDRESS_END (0x015F00UL)
+#define USER_FLASH_ADDRESS_END (0x015800UL)
 
 // Maximum valid address for a word read.
 #define MAX_WORD_ADDRESS (USER_FLASH_ADDRESS_END - INSTR_WORD_SIZE)

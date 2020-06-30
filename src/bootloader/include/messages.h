@@ -35,6 +35,7 @@ typedef enum msg_type_e {
     MESSAGE_TYPE_VERIFY = 3,
     MESSAGE_TYPE_DEVICE_INFO_REQUEST = 5,
     MESSAGE_TYPE_DEVICE_INFO = 6,
+    MESSAGE_TYPE_WRITE_DWORD = 7,
 } msg_type_t;
 
 /*

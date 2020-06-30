@@ -609,6 +609,147 @@ void test_verify_flash_error(void)
 }
 
 /******************************************************************************
+ * Write Double Word
+ ******************************************************************************/
+
+void test_write_dword_data_too_long(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_WRITE_DWORD,
+        0x01, 0x01, 0x01, 0x01, // Start Address
+        0x00, 0x01, 0x01, 0x01, // Data Low
+        0x00, 0x01, 0x01, 0x01, // Data High
+        0xAB, // Extra byte
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_LONG,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_dword_data_too_short(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_WRITE_DWORD,
+        0x01, 0x01, 0x01, 0x01, // Start Address
+        0x00, 0x01, 0x01, 0x01, // Data Low
+        0x00, 0x01, 0x01, // Data High with missing byte
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_SHORT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_dword_start_address_not_aligned(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_WRITE_DWORD,
+        0x00, 0x01, 0x00, 0x02, // Start Address (not aligned)
+        0x00, 0x01, 0x01, 0x01, // Data Low
+        0x00, 0x01, 0x01, 0x01, // Data High
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_dword_start_address_below_min(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_WRITE_DWORD,
+        0x00, 0x00, 0x0F, 0xFC, // Start Address (out of range)
+        0x00, 0x01, 0x01, 0x01, // Data Low
+        0x00, 0x01, 0x01, 0x01, // Data High
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_dword_start_address_equals_max(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_WRITE_DWORD,
+        0x00, 0x01, 0x58, 0x00, // Start Address (out of range)
+        0x00, 0x01, 0x01, 0x01, // Data Low
+        0x00, 0x01, 0x01, 0x01, // Data High
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_dword_start_address_greater_than_max(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_WRITE_DWORD,
+        0x00, 0x01, 0x58, 0x04, // Start Address (out of range)
+        0x00, 0x01, 0x01, 0x02, // Data Low
+        0x00, 0x01, 0x01, 0x02, // Data High
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_dword_success(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_WRITE_DWORD,
+        0x00, 0x01, 0x57, 0xFC, // Start Address
+        0xAB, 0xCD, 0xEF, 0x01, // Data Low
+        0xCA, 0xFE, 0xF0, 0x0D, // Data High
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_OK,
+    };
+
+    flash_write_dword_ExpectAndReturn(
+            0x000157FC, 0xABCDEF01, 0xCAFEF00D, FLASH_OK);
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_dword_flash_error(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_WRITE_DWORD,
+        0x00, 0x00, 0x10, 0x00, // Start Address
+        0xAB, 0xCD, 0xEF, 0x01, // Data Low
+        0xCA, 0xFE, 0xF0, 0x0D, // Data High
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_INTERNAL_ERROR,
+    };
+
+    flash_write_dword_ExpectAndReturn(
+            0x00001000, 0xABCDEF01, 0xCAFEF00D, FLASH_WRITE_ERROR);
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+/******************************************************************************
  * Fake Serial Functions
  ******************************************************************************/
 
@@ -648,14 +789,6 @@ static serial_status_t fake_serial_send(
  * write row start address too high
  * write row flash fail
  * write row success
- *
- * write dword message too short
- * write dword message too long
- * write dword start address not aligned
- * write dword start address too low
- * write dword start address too high
- * write dword flash fail
- * write dword success
  *
  * run bad message length
  * run app not ready

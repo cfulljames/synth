@@ -71,12 +71,25 @@
 // Index of the CRC in the verify command message.
 #define VERIFY_CRC_INDEX (9U)
 
+// Length of the double word write command message.
+#define WRITE_DWORD_MSG_LENGTH (13U)
+
+// Index of the start address in the double word write command message.
+#define WRITE_DWORD_START_ADDR_INDEX (1U)
+
+// Index of the low data word in the double word write command message.
+#define WRITE_DWORD_DATA_L_INDEX (5U)
+
+// Index of the high data word in the double word write command message.
+#define WRITE_DWORD_DATA_H_INDEX (9U)
+
 static void on_serial_error(serial_status_t error);
 static void on_serial_msg_received(const uint8_t *data, uint16_t length);
 static void send_response(msg_response_t response);
 static void handle_device_info_request(const uint8_t *data, uint16_t length);
 static void handle_erase(const uint8_t *data, uint16_t length);
 static void handle_verify(const uint8_t *data, uint16_t length);
+static void handle_write_dword(const uint8_t *data, uint16_t length);
 static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index);
 static flash_status_t read_application_version(uint8_t *msg, uint8_t *index);
 static uint32_t unpack_long(const uint8_t *data);
@@ -164,6 +177,9 @@ static void on_serial_msg_received(const uint8_t *data, uint16_t length)
         case MESSAGE_TYPE_VERIFY:
             handle_verify(data, length);
             break;
+        case MESSAGE_TYPE_WRITE_DWORD:
+            handle_write_dword(data, length);
+            break;
         default:
             send_response(MESSAGE_RESP_INVALID_TYPE);
             break;
@@ -177,7 +193,7 @@ static void on_serial_msg_received(const uint8_t *data, uint16_t length)
 /*
  * Handle the device info request message.
  *
- * This will read the deivce info (serial number, bootloader version, app
+ * This will read the device info (serial number, bootloader version, app
  * version) and send them in response.
  */
 static void handle_device_info_request(const uint8_t *data, uint16_t length)
@@ -267,7 +283,12 @@ static void handle_erase(const uint8_t *data, uint16_t length)
     send_response(MESSAGE_RESP_OK);
 }
 
-
+/*
+ * Handle a verify command message.
+ *
+ * Read the requested section of flash, calculate its CRC, and compare it to the
+ * given value.
+ */
 static void handle_verify(const uint8_t *data, uint16_t length)
 {
     if (length > VERIFY_MSG_LENGTH)
@@ -290,33 +311,79 @@ static void handle_verify(const uint8_t *data, uint16_t length)
     {
         // At least one address is not word-aligned.
         send_response(MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT);
+        return;
     }
     else if (end_address > (MAX_READ_ADDRESS + INSTR_WORD_SIZE)
             || start_address >= end_address)
     {
         // At least one address is out of range.
         send_response(MESSAGE_RESP_ADDRESS_OUT_OF_RANGE);
+        return;
+    }
+
+    // Addresses are valid; read the flash and calculate the CRC.
+    uint32_t expected_crc = unpack_long(&data[VERIFY_CRC_INDEX]);
+    flash_status_t status;
+    uint32_t actual_crc;
+    status = calculate_flash_crc(start_address, end_address, &actual_crc);
+
+    if (status != FLASH_OK)
+    {
+        send_response(MESSAGE_RESP_INTERNAL_ERROR);
+    }
+    else if (actual_crc == expected_crc)
+    {
+        send_response(MESSAGE_RESP_OK);
     }
     else
     {
-        // Addresses are valid; read the flash and calculate the CRC.
-        uint32_t expected_crc = unpack_long(&data[VERIFY_CRC_INDEX]);
-        flash_status_t status;
-        uint32_t actual_crc;
-        status = calculate_flash_crc(start_address, end_address, &actual_crc);
+        send_response(MESSAGE_RESP_VERIFICATION_FAIL);
+    }
+}
 
-        if (status != FLASH_OK)
-        {
-            send_response(MESSAGE_RESP_INTERNAL_ERROR);
-        }
-        else if (actual_crc == expected_crc)
-        {
-            send_response(MESSAGE_RESP_OK);
-        }
-        else
-        {
-            send_response(MESSAGE_RESP_VERIFICATION_FAIL);
-        }
+static void handle_write_dword(const uint8_t *data, uint16_t length)
+{
+    if (length > WRITE_DWORD_MSG_LENGTH)
+    {
+        send_response(MESSAGE_RESP_MESSAGE_TOO_LONG);
+        return;
+    }
+    else if (length < WRITE_DWORD_MSG_LENGTH)
+    {
+        send_response(MESSAGE_RESP_MESSAGE_TOO_SHORT);
+        return;
+    }
+
+    // Unpack data from the message.
+    uint32_t start_address = unpack_long(&data[WRITE_DWORD_START_ADDR_INDEX]);
+    uint32_t data_l = unpack_long(&data[WRITE_DWORD_DATA_L_INDEX]);
+    uint32_t data_h = unpack_long(&data[WRITE_DWORD_DATA_H_INDEX]);
+
+    if (start_address % DOUBLE_WORD_SIZE != 0)
+    {
+        // Address not double-word aligned.
+        send_response(MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT);
+        return;
+    }
+    else if (start_address >= USER_FLASH_ADDRESS_END
+            || start_address < APP_PARTITION_FIRST_ADDRESS)
+    {
+        // Address is not within application flash range.
+        send_response(MESSAGE_RESP_ADDRESS_OUT_OF_RANGE);
+        return;
+    }
+
+    // Start address is valid.  Write words to flash.
+    flash_status_t status = flash_write_dword(start_address, data_l, data_h);
+
+    if (status == FLASH_OK)
+    {
+        send_response(MESSAGE_RESP_OK);
+    }
+    else
+    {
+        // Flash error occurred while writing.
+        send_response(MESSAGE_RESP_INTERNAL_ERROR);
     }
 }
 
