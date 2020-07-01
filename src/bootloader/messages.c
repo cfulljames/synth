@@ -83,6 +83,15 @@
 // Index of the high data word in the double word write command message.
 #define WRITE_DWORD_DATA_H_INDEX (9U)
 
+// Length of the row write command message.
+#define WRITE_ROW_MSG_LENGTH (517U)
+
+// Index of the start address in the row write command message.
+#define WRITE_ROW_START_ADDR_INDEX (1U)
+
+// Index of the first data byte in the row write command message.
+#define WRITE_ROW_DATA_START_INDEX (5U)
+
 static void on_serial_error(serial_status_t error);
 static void on_serial_msg_received(const uint8_t *data, uint16_t length);
 static void send_response(msg_response_t response);
@@ -90,6 +99,7 @@ static void handle_device_info_request(const uint8_t *data, uint16_t length);
 static void handle_erase(const uint8_t *data, uint16_t length);
 static void handle_verify(const uint8_t *data, uint16_t length);
 static void handle_write_dword(const uint8_t *data, uint16_t length);
+static void handle_write_row(const uint8_t *data, uint16_t length);
 static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index);
 static flash_status_t read_application_version(uint8_t *msg, uint8_t *index);
 static uint32_t unpack_long(const uint8_t *data);
@@ -179,6 +189,9 @@ static void on_serial_msg_received(const uint8_t *data, uint16_t length)
             break;
         case MESSAGE_TYPE_WRITE_DWORD:
             handle_write_dword(data, length);
+            break;
+        case MESSAGE_TYPE_WRITE_ROW:
+            handle_write_row(data, length);
             break;
         default:
             send_response(MESSAGE_RESP_INVALID_TYPE);
@@ -375,6 +388,53 @@ static void handle_write_dword(const uint8_t *data, uint16_t length)
 
     // Start address is valid.  Write words to flash.
     flash_status_t status = flash_write_dword(start_address, data_l, data_h);
+
+    if (status == FLASH_OK)
+    {
+        send_response(MESSAGE_RESP_OK);
+    }
+    else
+    {
+        // Flash error occurred while writing.
+        send_response(MESSAGE_RESP_INTERNAL_ERROR);
+    }
+}
+
+static void handle_write_row(const uint8_t *data, uint16_t length)
+{
+    if (length > WRITE_ROW_MSG_LENGTH)
+    {
+        send_response(MESSAGE_RESP_MESSAGE_TOO_LONG);
+        return;
+    }
+    else if (length < WRITE_ROW_MSG_LENGTH)
+    {
+        send_response(MESSAGE_RESP_MESSAGE_TOO_SHORT);
+        return;
+    }
+
+    // Unpack data from the message.
+    uint32_t start_address = unpack_long(&data[WRITE_ROW_START_ADDR_INDEX]);
+
+    if (start_address % ROW_SIZE != 0)
+    {
+        // Address not double-word aligned.
+        send_response(MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT);
+        return;
+    }
+    else if (start_address >= USER_FLASH_ADDRESS_END
+            || start_address < APP_PARTITION_FIRST_ADDRESS)
+    {
+        // Address is not within application flash range.
+        send_response(MESSAGE_RESP_ADDRESS_OUT_OF_RANGE);
+        return;
+    }
+
+    // Pointer to the start of the data row to write in the message.
+    uint32_t *data_row = (uint32_t*)&data[WRITE_ROW_DATA_START_INDEX];
+
+    // Start address is valid.  Write words to flash.
+    flash_status_t status = flash_write_row(start_address, data_row);
 
     if (status == FLASH_OK)
     {

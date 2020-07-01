@@ -32,6 +32,7 @@ typedef enum msg_response_e {
 typedef enum msg_type_e {
     MESSAGE_TYPE_CMD_RESULT = 0,
     MESSAGE_TYPE_ERASE = 1,
+    MESSAGE_TYPE_WRITE_ROW = 2,
     MESSAGE_TYPE_VERIFY = 3,
     MESSAGE_TYPE_DEVICE_INFO_REQUEST = 5,
     MESSAGE_TYPE_DEVICE_INFO = 6,

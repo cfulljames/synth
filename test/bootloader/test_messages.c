@@ -750,6 +750,150 @@ void test_write_dword_flash_error(void)
 }
 
 /******************************************************************************
+ * Write Row
+ ******************************************************************************/
+
+// Length of the write row message: type + address + data
+#define WRITE_ROW_LENGTH (1 + 4 + 512)
+
+void test_write_row_data_too_long(void)
+{
+    uint8_t message[WRITE_ROW_LENGTH + 1] = {
+        MESSAGE_TYPE_WRITE_ROW,
+        0x01, 0x01, 0x01, 0x01, // Start Address
+        // Uninitialized Data...
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_LONG,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_row_data_too_short(void)
+{
+    uint8_t message[WRITE_ROW_LENGTH - 1] = {
+        MESSAGE_TYPE_WRITE_ROW,
+        0x01, 0x01, 0x01, 0x01, // Start Address
+        // Uninitialized Data...
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_SHORT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_row_start_address_not_aligned(void)
+{
+    uint8_t message[WRITE_ROW_LENGTH] = {
+        MESSAGE_TYPE_WRITE_ROW,
+        0x00, 0x00, 0x10, 0x80, // Start Address (not 512-byte aligned)
+        // Uninitialized Data...
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_BAD_ALIGNMENT,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_row_start_address_below_min(void)
+{
+    uint8_t message[WRITE_ROW_LENGTH] = {
+        MESSAGE_TYPE_WRITE_ROW,
+        0x00, 0x00, 0x0F, 0x00, // Start Address (out of range)
+        // Uninitialized Data...
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_row_start_address_equals_max(void)
+{
+    uint8_t message[WRITE_ROW_LENGTH] = {
+        MESSAGE_TYPE_WRITE_ROW,
+        0x00, 0x01, 0x58, 0x00, // Start Address (out of range)
+        // Uninitialized Data...
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_row_start_address_greater_than_max(void)
+{
+    uint8_t message[WRITE_ROW_LENGTH] = {
+        MESSAGE_TYPE_WRITE_ROW,
+        0x00, 0x01, 0x59, 0x00, // Start Address (out of range)
+        // Uninitialized Data...
+    };
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_ADDRESS_OUT_OF_RANGE,
+    };
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_row_success(void)
+{
+    uint8_t message[WRITE_ROW_LENGTH] = {
+        MESSAGE_TYPE_WRITE_ROW,
+        0x00, 0x01, 0x57, 0x00, // Start Address
+        // Uninitialized Data...
+    };
+
+    // Assign 512 bytes of 0xAB data.
+    memset(message + 1 + 4, 0xAB, 512);
+
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_OK,
+    };
+
+    flash_write_row_ExpectWithArrayAndReturn(
+            0x00015700, (uint32_t*)&message[5], WORDS_PER_ROW, FLASH_OK);
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_write_row_flash_error(void)
+{
+    uint8_t message[WRITE_ROW_LENGTH] = {
+        MESSAGE_TYPE_WRITE_ROW,
+        0x00, 0x00, 0x10, 0x00, // Start Address
+        // Uninitialized Data...
+    };
+
+    // Assign 512 bytes of 0xCD data.
+    memset(message + 1 + 4, 0xCD, 512);
+
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_INTERNAL_ERROR,
+    };
+
+    flash_write_row_ExpectWithArrayAndReturn(
+            0x00001000, (uint32_t*)&message[5], WORDS_PER_ROW,
+            FLASH_WRITE_ERROR);
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+/******************************************************************************
  * Fake Serial Functions
  ******************************************************************************/
 
