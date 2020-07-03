@@ -450,16 +450,16 @@ class TestWriteRow(BootloaderTestCase):
         self.assertEqual(expected, self.blser.read_packet())
 
         # Write a row to flash
-        data = b'\xAB\xCD\xEF\x00' * 128
+        data = b'\xEF\xCD\xAB\x00' * 128
         packet_data = pack_write_row_message(start=0x4000, data=data)
         self.blser.write_packet(packet_data)
 
         # Check the write response.
-        data = b'\x00\xEF\xCD\xAB' * 128 # Swap endianness for CRC
         expected = pack_response_msg(ResponseCode.OK)
         self.assertEqual(expected, self.blser.read_packet())
 
         # Calculate the expected CRC for newly written flash.
+        data = b'\x00\xAB\xCD\xEF' * 128 # Swap endianness for CRC
         expected_crc = binascii.crc32(data)
 
         # Send the verify command

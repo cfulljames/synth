@@ -854,8 +854,17 @@ void test_write_row_success(void)
         // Uninitialized Data...
     };
 
-    // Assign 512 bytes of 0xAB data.
-    memset(message + 1 + 4, 0xAB, 512);
+    uint32_t data[WORDS_PER_ROW];
+
+    // Create array of 0xABCDEF data to write to flash.
+    uint16_t index;
+    for (index = 0; index < WORDS_PER_ROW; index ++)
+    {
+        data[index] = 0x00ABCDEF;
+    }
+
+    // Copy data into message.
+    memcpy(&message[5], data, sizeof(data));
 
     uint8_t expected[] = {
         MESSAGE_TYPE_CMD_RESULT,
@@ -863,7 +872,7 @@ void test_write_row_success(void)
     };
 
     flash_write_row_ExpectWithArrayAndReturn(
-            0x00015700, (uint32_t*)&message[5], WORDS_PER_ROW, FLASH_OK);
+            0x00015700, data, WORDS_PER_ROW, FLASH_OK);
 
     RECEIVE_MESSAGE(message);
     TEST_ASSERT_SENT(expected);

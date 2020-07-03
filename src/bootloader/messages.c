@@ -4,6 +4,7 @@
 #include "serial.h"
 #include "version.h"
 #include <stddef.h>
+#include <string.h>
 
 // Number of bits to shift the upper nibble of a byte into the lower nibble.
 #define UPPER_NIBBLE_SHIFT (4U)
@@ -430,8 +431,9 @@ static void handle_write_row(const uint8_t *data, uint16_t length)
         return;
     }
 
-    // Pointer to the start of the data row to write in the message.
-    uint32_t *data_row = (uint32_t*)&data[WRITE_ROW_DATA_START_INDEX];
+    // Copy data into new 4-byte-aligned array.
+    uint32_t data_row[WORDS_PER_ROW];
+    memcpy(data_row, &data[WRITE_ROW_DATA_START_INDEX], sizeof(data_row));
 
     // Start address is valid.  Write words to flash.
     flash_status_t status = flash_write_row(start_address, data_row);
