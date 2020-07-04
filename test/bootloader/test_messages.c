@@ -4,6 +4,7 @@
 #include "mock_serial.h"
 #include "mock_flash.h"
 #include "mock_crc.h"
+#include "mock_app_status.h"
 #include "version.h"
 
 #include <string.h>
@@ -903,6 +904,60 @@ void test_write_row_flash_error(void)
 }
 
 /******************************************************************************
+ * Run
+ ******************************************************************************/
+
+void test_run_message_too_long(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_RUN,
+        0x00, // Extra byte
+    };
+
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_MESSAGE_TOO_LONG,
+    };
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_run_app_status_fail(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_RUN,
+    };
+
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_INTERNAL_ERROR,
+    };
+
+    app_status_request_ExpectAndReturn(APP_STATUS_RUN, APP_STATUS_DO_NOT_RUN);
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+void test_run_success(void)
+{
+    uint8_t message[] = {
+        MESSAGE_TYPE_RUN,
+    };
+
+    uint8_t expected[] = {
+        MESSAGE_TYPE_CMD_RESULT,
+        MESSAGE_RESP_OK,
+    };
+
+    app_status_request_ExpectAndReturn(APP_STATUS_RUN, APP_STATUS_RUN);
+
+    RECEIVE_MESSAGE(message);
+    TEST_ASSERT_SENT(expected);
+}
+
+/******************************************************************************
  * Fake Serial Functions
  ******************************************************************************/
 
@@ -926,8 +981,6 @@ static serial_status_t fake_serial_send(
     memcpy(m_send_data, data, length);
     m_send_length = length;
 }
-
-
 
 /*
  * FUNCTIONS

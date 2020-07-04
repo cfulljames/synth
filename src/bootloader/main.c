@@ -1,4 +1,6 @@
 #include "sysconfig.h"
+#include "app_status.h"
+#include "gpio.h"
 #include "system.h"
 #include "timer.h"
 #include "uart.h"
@@ -19,13 +21,28 @@ int main()
     serial_init();
     messages_init();
 
-    while (1)
+    // Check the button status to determine if we should stay in bootloader
+    // mode.
+    if (gpio_get_button_status())
+    {
+        // The user held the button down during reset - hold the device in
+        // bootloader mode to wait for serial commands.
+        app_status_request(APP_STATUS_DO_NOT_RUN);
+    }
+
+    while (APP_STATUS_DO_NOT_RUN == app_status_get())
     {
         // The heart of the bootloader program is this serial update loop.  This
         // checks for new command messages received over UART and handles them
         // accordingly.
         serial_update();
     }
+
+    // Set the app status back to DO_NOT_RUN so that if the application
+    // immediately crashes and the device resets, the bootloader will not try to
+    // run the app again.  This prevents a boot loop caused by a broken
+    // application.
+    app_status_request(APP_STATUS_DO_NOT_RUN);
 
     // Deinitialize peripherals used by the bootloader to put them back in the
     // default state when the application launches.

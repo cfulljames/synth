@@ -1,3 +1,4 @@
+#include "app_status.h"
 #include "crc.h"
 #include "flash.h"
 #include "messages.h"
@@ -101,6 +102,7 @@ static void handle_erase(const uint8_t *data, uint16_t length);
 static void handle_verify(const uint8_t *data, uint16_t length);
 static void handle_write_dword(const uint8_t *data, uint16_t length);
 static void handle_write_row(const uint8_t *data, uint16_t length);
+static void handle_run(const uint8_t *data, uint16_t length);
 static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index);
 static flash_status_t read_application_version(uint8_t *msg, uint8_t *index);
 static uint32_t unpack_long(const uint8_t *data);
@@ -193,6 +195,9 @@ static void on_serial_msg_received(const uint8_t *data, uint16_t length)
             break;
         case MESSAGE_TYPE_WRITE_ROW:
             handle_write_row(data, length);
+            break;
+        case MESSAGE_TYPE_RUN:
+            handle_run(data, length);
             break;
         default:
             send_response(MESSAGE_RESP_INVALID_TYPE);
@@ -355,6 +360,11 @@ static void handle_verify(const uint8_t *data, uint16_t length)
     }
 }
 
+/*
+ * Handle a write double word message.
+ *
+ * Write the given double instruction word to flash.
+ */
 static void handle_write_dword(const uint8_t *data, uint16_t length)
 {
     if (length > WRITE_DWORD_MSG_LENGTH)
@@ -401,6 +411,11 @@ static void handle_write_dword(const uint8_t *data, uint16_t length)
     }
 }
 
+/*
+ * Handle a write row message.
+ *
+ * Write the given row of data to flash.
+ */
 static void handle_write_row(const uint8_t *data, uint16_t length)
 {
     if (length > WRITE_ROW_MSG_LENGTH)
@@ -445,6 +460,28 @@ static void handle_write_row(const uint8_t *data, uint16_t length)
     else
     {
         // Flash error occurred while writing.
+        send_response(MESSAGE_RESP_INTERNAL_ERROR);
+    }
+}
+
+static void handle_run(const uint8_t *data, uint16_t length)
+{
+    if (length > 1)
+    {
+        send_response(MESSAGE_RESP_MESSAGE_TOO_LONG);
+        return;
+    }
+
+    // Set request to run application.  This will be checked in the main loop in
+    // main.c
+    app_status_t actual_status = app_status_request(APP_STATUS_RUN);
+
+    if (actual_status == APP_STATUS_RUN)
+    {
+        send_response(MESSAGE_RESP_OK);
+    }
+    else
+    {
         send_response(MESSAGE_RESP_INTERNAL_ERROR);
     }
 }

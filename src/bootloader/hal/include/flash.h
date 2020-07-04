@@ -75,12 +75,14 @@ extern const uint32_t CONFIGURATION_PAGE_FIRST_ADDRESS;
 #else
 
 // Define macros from symbols in linker script.
+__prog__ __attribute__((space(prog))) extern uint8_t _APP_VALID;
 __prog__ __attribute__((space(prog))) extern uint8_t _APP_VERSION;
 __prog__ __attribute__((space(prog))) extern uint8_t _APPLICATION_IVT_BASE;
 __prog__ __attribute__((space(prog))) extern uint8_t _CONFIGURATION_PAGE_BASE;
 
 #define ADDR_OF(s) ((uint32_t)&(s) & 0x00FFFFFFUL)
 
+#define APP_VALID_FIRST_ADDRESS (ADDR_OF(_APP_VALID))
 #define APP_VERSION_FIRST_ADDRESS (ADDR_OF(_APP_VERSION))
 #define APP_PARTITION_FIRST_ADDRESS (ADDR_OF(_APPLICATION_IVT_BASE))
 #define CONFIGURATION_PAGE_FIRST_ADDRESS (ADDR_OF(_CONFIGURATION_PAGE_BASE))

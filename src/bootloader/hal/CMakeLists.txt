@@ -9,6 +9,7 @@ set(SOURCES
     crc.c
     flash.c
     timer.c
+    gpio.c
 )
 
 add_library(${PROJECT_NAME} ${SOURCES})

@@ -9,6 +9,7 @@ set(SOURCES
     serial.c
     messages.c
     version.c
+    app_status.c
 )
 
 # Set project-specific compiler and linker flags
