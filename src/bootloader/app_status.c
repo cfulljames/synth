@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// This must match the definition in src/master/app_status.c
 #define APP_STATUS_ADDRESS (0x3000)
 
 #define APP_VALID_MARKER (0xA5C3)

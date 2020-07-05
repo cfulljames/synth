@@ -470,3 +470,10 @@ class TestWriteRow(BootloaderTestCase):
         # Check the response
         expected = pack_response_msg(ResponseCode.OK)
         self.assertEqual(expected, self.blser.read_packet())
+
+class TestRun(BootloaderTestCase):
+
+    def test_run(self):
+        self.blser.write_packet(bytes([MessageType.RUN]))
+        expected = pack_response_msg(ResponseCode.OK)
+        self.assertEqual(expected, self.blser.read_packet())

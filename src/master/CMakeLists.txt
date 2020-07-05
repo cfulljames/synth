@@ -10,6 +10,7 @@ set(SOURCES
     notes.c
     envtable.c
     version.c
+    app_status.c
 )
 
 # Include the slave project as part of the master build

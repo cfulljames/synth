@@ -1,5 +1,6 @@
 #include "system.h"
 #include "uart.h"
+#include "app_status.h"
 
 // Generated header containing note_freqs table declaration.
 #include "notes.h"
@@ -25,6 +26,10 @@ int main(void)
 
     // Configure LED pin (RE0) as output
     TRISEbits.TRISE0 = 0;
+
+    // Initialization finished successfully - set bootloader to re-launch app on
+    // next reset.
+    app_status_set(APP_STATUS_RUN);
 
     while (1)
     {
