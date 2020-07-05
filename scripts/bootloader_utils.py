@@ -61,6 +61,150 @@ class BootloaderSerial():
     def close(self):
         self.ser.close()
 
+class FlashRowData:
+    """A row of data to be written to the device via the bootloader."""
+
+    def __init__(self, address, data):
+        self.address = address
+        self.data = data
+
+class ApplicationCode:
+    """Application code to be loaded onto the device using the bootloader.
+
+    The code is read from a hex file and converted into a loadable format.
+    """
+    DATA = 0x00
+    END_OF_FILE = 0x01
+    EXTENDED_LINEAR_ADDRESS = 0x04
+
+    def __init__(self, hex_path):
+        # The flash pages that need to be erased before loading the app.
+        self.pages = []
+
+        # List of rows of data (FlashRowData objects) to be loaded.
+        self.rows = []
+
+        self.load_hex_file(hex_path)
+
+    def load_hex_file(self, hex_path):
+        """Read data from the given hex file."""
+
+        with open(hex_path, 'r') as hex_file:
+            hex_lines = hex_file.readlines()
+
+        all_data = []
+
+        end_of_file = False
+        extended_address = 0
+        for line in hex_lines:
+            line = line.strip()
+            if end_of_file:
+                # Extra line(s) after the last line marker.
+                raise ValueError('Invalid hex file.')
+            line_bytes = self.bytes_from_line(line)
+            self.verify(line_bytes)
+            record_type, address, data = self.split_bytes(line_bytes)
+
+            if record_type == self.END_OF_FILE:
+                # End of file
+                end_of_file = True
+
+            elif record_type == self.EXTENDED_LINEAR_ADDRESS:
+                extended_address = int.from_bytes(data, byteorder='big') << 16
+
+            elif record_type == self.DATA:
+                address += extended_address
+                all_data.append((address, data))
+
+            else:
+                # Unknown record type.
+                raise ValueError('Invalid hex file.')
+
+        if not end_of_file:
+            # No end of file marker
+            raise ValueError('Invalid hex file.')
+
+        self.parse_data(all_data)
+
+    def bytes_from_line(self, line):
+        """Convert a line from the hex file into bytes."""
+
+        if line[0] != ':':
+            raise ValueError('Invalid hex file.')
+
+        # Remove : from beginning of line
+        line = line[1:]
+        byte_vals = [int(line[i:i+2], 16) for i in range(0, len(line), 2)]
+        return bytes(byte_vals)
+
+    def verify(self, line_bytes):
+        """Verify the checksum and length for the bytes from a hex file line."""
+
+        # Check the length
+        if len(line_bytes) != 5 + line_bytes[0]:
+            raise ValueError('Invalid hex file.')
+
+        # Check the checksum
+        line_sum = sum(line_bytes[:-1])
+        checksum = (-(line_sum & 0xFF) & 0xFF)
+
+        if checksum != line_bytes[-1]:
+            raise ValueError('Invalid hex file.')
+
+    def split_bytes(self, line_bytes):
+        """Separate line bytes into address, type, and data."""
+
+        address = int.from_bytes(line_bytes[1:3], byteorder='big')
+        record_type = line_bytes[3]
+        data = line_bytes[4:-1]
+        return record_type, address, data
+
+    def parse_data(self, all_data):
+        BYTES_PER_ROW = 512
+        # Construct a dict of the form {address: byte, ...}
+        all_data_bytes = {}
+        for address, data in all_data:
+            for data_byte in data:
+                if address in all_data_bytes:
+                    # Same byte address occurred twice
+                    raise ValueError('Invalid hex file.')
+                all_data_bytes[address] = data_byte
+                address += 1
+
+        # Convert to single contiguous bytearray, filling in gaps with 0xFF
+        code_bytes = bytearray()
+        max_address = max(all_data_bytes.keys())
+        for address in range(max_address):
+            try:
+                current_byte = all_data_bytes[address]
+            except KeyError:
+                current_byte = 0xFF
+            code_bytes.append(current_byte)
+
+        # Split into separate bytearrays for each flash row
+        rows = [
+            code_bytes[addr:addr+BYTES_PER_ROW]
+            for addr in range(0, max_address, BYTES_PER_ROW)]
+
+        # Make sure last row is full
+        last_row_len = len(rows[-1])
+        if last_row_len < BYTES_PER_ROW:
+            rows[-1] += b'\xFF' * (BYTES_PER_ROW - last_row_len)
+
+        # Populate self.rows list with non-empty rows
+        for index, row in enumerate(rows):
+            address = int((index * BYTES_PER_ROW) / 2)
+            if row != b'\xFF' * BYTES_PER_ROW: # Ignore empty rows
+                self.rows.append(FlashRowData(address, row))
+
+        # Populate self.pages with list of non-empty flash pages
+        pages = set()
+        for row in self.rows:
+            address = row.address
+            page = int(address / 0x800) * 0x800
+            pages.add(page)
+        self.pages = sorted(pages)
+
 class CRCFailError(Exception):
     """Indicates that a CRC check failed."""
     pass

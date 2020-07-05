@@ -473,7 +473,50 @@ class TestWriteRow(BootloaderTestCase):
 
 class TestRun(BootloaderTestCase):
 
-    def test_run(self):
+    def test_program_and_run(self):
+        SCRIPT_DIR = os.path.dirname(__file__)
+        HEX_PATH = os.path.join(
+            SCRIPT_DIR, '..', 'build', 'src', 'master', 'synth_master.hex')
+        code = bootloader_utils.ApplicationCode(HEX_PATH)
+
+        # Erase pages
+        for page in code.pages:
+            print('.', end='', flush=True)
+            packet_data = pack_erase_message(start=page, end=page+0x800)
+            self.blser.write_packet(packet_data)
+
+            expected = pack_response_msg(ResponseCode.OK)
+            self.assertEqual(expected, self.blser.read_packet())
+
+        # Write/verify rows
+        for row in code.rows:
+            print('.', end='', flush=True)
+            packet_data = pack_write_row_message(
+                start=row.address, data=row.data)
+            self.blser.write_packet(packet_data)
+
+            expected = pack_response_msg(ResponseCode.OK)
+            self.assertEqual(expected, self.blser.read_packet())
+
+            row_words = [row.data[i:i+4] for i in range(0, 512, 4)]
+            row_words = [bytes(reversed(word)) for word in row_words]
+            row_data = bytearray(b''.join(row_words))
+            # Replace MSB of each  word with 0
+            for index in range(len(row_data)):
+                if index % 4 == 0:
+                    row_data[index] = 0
+            crc = binascii.crc32(row_data)
+
+            packet_data = pack_verify_message(
+                start=row.address, end=row.address+0x100, crc=crc)
+            self.blser.write_packet(packet_data)
+
+            expected = pack_response_msg(ResponseCode.OK)
+            self.assertEqual(expected, self.blser.read_packet())
+
+        # Run application
         self.blser.write_packet(bytes([MessageType.RUN]))
         expected = pack_response_msg(ResponseCode.OK)
         self.assertEqual(expected, self.blser.read_packet())
+        print('')
+
