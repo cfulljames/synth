@@ -1,9 +1,45 @@
 import binascii
+import enum
 import serial
+import struct
 
 BOOTLOADER_BAUD = 115200
 
 CRC_LEN = 4
+
+class MessageType(enum.IntEnum):
+    RESPONSE = 0x00
+    ERASE = 0x01
+    WRITE_ROW = 0x02
+    VERIFY = 0x03
+    RUN = 0x04
+    REQUEST_DEVICE_INFO = 0x05
+    DEVICE_INFO = 0x06
+    WRITE_DWORD = 0x07
+
+class ResponseCode(enum.IntEnum):
+
+    OK = 0x00
+
+    # Serial Protocol Errors
+    TIMEOUT = 0x01
+    PACKET_CRC_FAIL = 0x02
+    COBS_DECODE_FAIL = 0x03
+    PACKET_TOO_LONG = 0x04
+    PACKET_TOO_SHORT = 0x05
+
+    # Message-Specific Errors
+    INVALID_TYPE = 0x10
+    DATA_TOO_LONG = 0x11
+    DATA_TOO_SHORT = 0x12
+    BAD_ALIGNMENT = 0x13
+    ADDR_OUT_OF_RANGE = 0x14
+
+    # Message-Specific Statuses
+    VERIFICATION_FAIL = 0x20
+
+    # General Errors
+    INTERNAL_ERROR = 0xFF
 
 class BootloaderSerial():
     """Bootloader serial connection.
@@ -13,6 +49,53 @@ class BootloaderSerial():
 
     def __init__(self, port):
         self.ser = serial.Serial(port, BOOTLOADER_BAUD, timeout=0)
+
+    def send_erase(self, start, end, response=ResponseCode.OK):
+        fmt = ">LL"
+        msg = self.pack_msg(MessageType.ERASE, struct.pack(fmt, start, end))
+        self.write_packet(msg)
+        self.assert_response(response)
+
+    def send_verify(self, start, end, crc, response=ResponseCode.OK):
+        fmt = ">LLL"
+        msg = self.pack_msg(
+            MessageType.VERIFY, struct.pack(fmt, start, end, crc))
+        self.write_packet(msg)
+        self.assert_response(response, timeout=2)
+
+    def send_write_dword(self, start, data_l, data_h, response=ResponseCode.OK):
+        fmt = ">LLL"
+        msg = self.pack_msg(
+            MessageType.WRITE_DWORD, struct.pack(fmt, start, data_l, data_h))
+        self.write_packet(msg)
+        self.assert_response(response)
+
+    def send_write_row(self, start, data, response=ResponseCode.OK):
+        msg = self.pack_msg(
+            MessageType.WRITE_ROW, struct.pack(">L", start) + data)
+        self.write_packet(msg)
+        self.assert_response(response)
+
+    def send_run(self, response=ResponseCode.OK):
+        self.write_packet(bytes([MessageType.RUN]))
+        self.assert_response(response)
+
+    def get_device_info(self):
+        request = bytes([MessageType.REQUEST_DEVICE_INFO])
+        self.write_packet(request)
+        response = self.read_packet()
+        return DeviceInfo(response)
+
+    def pack_msg(self, msg_type, data):
+        return msg_type.to_bytes(1, byteorder='big') + data
+
+    def assert_response(self, response, timeout=1):
+        actual = self.read_packet(timeout)
+        expected = self.pack_msg(
+            MessageType.RESPONSE, response.to_bytes(1, byteorder='big'))
+        assert expected == actual, (
+            'Incorrect response message.  Expected {}, was {}'.format(
+                expected, actual))
 
     def write_packet(self, data):
         """Format a packet using the bootlader framing protocol and send it over
