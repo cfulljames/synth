@@ -106,7 +106,6 @@ static void handle_run(const uint8_t *data, uint16_t length);
 static flash_status_t read_serial_number(uint8_t *msg, uint8_t *index);
 static flash_status_t read_application_version(uint8_t *msg, uint8_t *index);
 static uint32_t unpack_long(const uint8_t *data);
-static void pack_long(uint32_t value, uint8_t *data);
 static flash_status_t calculate_flash_crc(
         uint32_t start_address, uint32_t end_address, uint32_t *crc);
 
@@ -380,8 +379,8 @@ static void handle_write_dword(const uint8_t *data, uint16_t length)
 
     // Unpack data from the message.
     uint32_t start_address = unpack_long(&data[WRITE_DWORD_START_ADDR_INDEX]);
-    uint32_t data_l = unpack_long(&data[WRITE_DWORD_DATA_L_INDEX]);
-    uint32_t data_h = unpack_long(&data[WRITE_DWORD_DATA_H_INDEX]);
+    uint32_t words[2];
+    memcpy(words, &data[WRITE_DWORD_DATA_L_INDEX], sizeof(words));
 
     if (start_address % DOUBLE_WORD_SIZE != 0)
     {
@@ -398,7 +397,7 @@ static void handle_write_dword(const uint8_t *data, uint16_t length)
     }
 
     // Start address is valid.  Write words to flash.
-    flash_status_t status = flash_write_dword(start_address, data_l, data_h);
+    flash_status_t status = flash_write_dword(start_address, words[0], words[1]);
 
     if (status == FLASH_OK)
     {
@@ -574,13 +573,8 @@ static flash_status_t calculate_flash_crc(
             return status;
         }
 
-        // Convert the data to an array of bytes so it can be passed to the
-        // CRC calculate function.
-        uint8_t flash_word_packed[sizeof(uint32_t)];
-        pack_long(flash_word, flash_word_packed);
-
         // Add this word to the CRC calculation.
-        crc_calculate(flash_word_packed, sizeof(uint32_t));
+        crc_calculate((uint8_t*)&flash_word, sizeof(uint32_t));
     }
 
     // Get the CRC result and compare it to the expected value from the
@@ -604,17 +598,4 @@ static uint32_t unpack_long(const uint8_t *data)
     result |= (uint32_t)data[2] << 8;
     result |= (uint32_t)data[3] << 0;
     return result;
-}
-
-/*
- * Pack an unsigned long integer into a byte array.
- *
- * This is the opposite of unpack_long.
- */
-static void pack_long(uint32_t value, uint8_t *data)
-{
-    data[0] = value >> 24;
-    data[1] = value >> 16;
-    data[2] = value >> 8;
-    data[3] = value >> 0;
 }

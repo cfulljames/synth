@@ -536,7 +536,7 @@ void test_verify_success(void)
 
     // Should read flash and calculate CRC.
     crc_seed_Expect();
-    uint8_t expected_data[] = {0xAB, 0xCD, 0xCA, 0xFE};
+    uint8_t expected_data[] = {0xFE, 0xCA, 0xCD, 0xAB};
     uint32_t return_data = 0xABCDCAFE;
     for (int addr = 0x00FFF000; addr < 0x01000000; addr += 2)
     {
@@ -566,7 +566,7 @@ void test_verify_crc_fail(void)
 
     // Should read flash and calculate CRC.
     crc_seed_Expect();
-    uint8_t expected_data[] = {0xAB, 0xCD, 0xCA, 0xFE};
+    uint8_t expected_data[] = {0xFE, 0xCA, 0xCD, 0xAB};
     uint32_t return_data = 0xABCDCAFE;
     for (int addr = 0x2000; addr < 0x3802; addr += 2)
     {
@@ -724,7 +724,7 @@ void test_write_dword_success(void)
     };
 
     flash_write_dword_ExpectAndReturn(
-            0x000157FC, 0xABCDEF01, 0xCAFEF00D, FLASH_OK);
+            0x000157FC, 0x01EFCDAB, 0x0DF0FECA, FLASH_OK);
 
     RECEIVE_MESSAGE(message);
     TEST_ASSERT_SENT(expected);
@@ -744,7 +744,7 @@ void test_write_dword_flash_error(void)
     };
 
     flash_write_dword_ExpectAndReturn(
-            0x00001000, 0xABCDEF01, 0xCAFEF00D, FLASH_WRITE_ERROR);
+            0x00001000, 0x01EFCDAB, 0x0DF0FECA, FLASH_WRITE_ERROR);
 
     RECEIVE_MESSAGE(message);
     TEST_ASSERT_SENT(expected);

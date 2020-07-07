@@ -63,10 +63,10 @@ class BootloaderSerial():
         self.write_packet(msg)
         self.assert_response(response, timeout=2)
 
-    def send_write_dword(self, start, data_l, data_h, response=ResponseCode.OK):
-        fmt = ">LLL"
+    def send_write_dword(self, start, data, response=ResponseCode.OK):
+        fmt = ">L"
         msg = self.pack_msg(
-            MessageType.WRITE_DWORD, struct.pack(fmt, start, data_l, data_h))
+            MessageType.WRITE_DWORD, struct.pack(fmt, start) + data)
         self.write_packet(msg)
         self.assert_response(response)
 

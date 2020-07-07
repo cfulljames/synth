@@ -172,7 +172,7 @@ class TestEraseVerify(BootloaderTestCase):
         self.blser.send_erase(start=0x1000, end=0x1800)
 
         # Calculate the expected CRC for erased flash
-        data = b'\x00\xFF\xFF\xFF' * 0x400
+        data = b'\xFF\xFF\xFF\x00' * 0x400
         expected_crc = binascii.crc32(data)
 
         # Send the verify command
@@ -184,7 +184,7 @@ class TestEraseVerify(BootloaderTestCase):
         self.blser.send_erase(start=0x1000, end=0x15800)
 
         # Calculate the expected CRC for erased flash
-        data = b'\x00\xFF\xFF\xFF' * (0x14800 >> 1)
+        data = b'\xFF\xFF\xFF\x00' * (0x14800 >> 1)
         expected_crc = binascii.crc32(data)
 
         # Send the verify command
@@ -208,17 +208,17 @@ class TestWriteDoubleWord(BootloaderTestCase):
 
     def test_start_address_too_high(self):
         self.blser.send_write_dword(
-            start=0x15800, data_l=0x00ABCDEF, data_h=0x00CAFECAFE,
+            start=0x15800, data=bytes.fromhex('ABCDEF00CAFECA00'),
             response=ResponseCode.ADDR_OUT_OF_RANGE)
 
     def test_start_address_bad_alignment(self):
         self.blser.send_write_dword(
-            start=0x1570A, data_l=0x00ABCDEF, data_h=0x00CAFECAFE,
+            start=0x1570A, data=bytes.fromhex('ABCDEF00CAFECA00'),
             response=ResponseCode.BAD_ALIGNMENT)
 
     def test_start_address_too_low(self):
         self.blser.send_write_dword(
-            start=0x0F0C, data_l=0x00ABCDEF, data_h=0x00CAFECAFE,
+            start=0x0F0C, data=bytes.fromhex('ABCDEF00CAFECA00'),
             response=ResponseCode.ADDR_OUT_OF_RANGE)
 
     def test_erase_write_double_word_verify(self):
@@ -227,11 +227,10 @@ class TestWriteDoubleWord(BootloaderTestCase):
         self.blser.send_erase(start=0x2000, end=0x2800)
 
         # Write a double-word to flash.
-        self.blser.send_write_dword(
-            start=0x2000, data_l=0x00ABCDEF, data_h=0x00CAFEFE)
+        data = bytes.fromhex('ABCDEF00CAFECA00')
+        self.blser.send_write_dword(start=0x2000, data=data)
 
         # Calculate the expected CRC for newly written flash.
-        data = bytes.fromhex('00 AB CD EF 00 CA FE FE')
         expected_crc = binascii.crc32(data)
 
         # Send the verify command
@@ -278,44 +277,41 @@ class TestWriteRow(BootloaderTestCase):
         self.blser.send_write_row(start=0x4000, data=data)
 
         # Calculate the expected CRC for newly written flash.
-        data = b'\x00\xAB\xCD\xEF' * 128 # Swap endianness for CRC
         expected_crc = binascii.crc32(data)
 
         # Send the verify command
         self.blser.send_verify(
             start=0x4000, end=0x4100, crc=expected_crc)
 
-#class TestRun(BootloaderTestCase):
-#
-#    def test_program_and_run(self):
-#        SCRIPT_DIR = os.path.dirname(__file__)
-#        HEX_PATH = os.path.join(
-#            SCRIPT_DIR, '..', 'build', 'src', 'master', 'synth_master.hex')
-#        code = bootloader_utils.ApplicationCode(HEX_PATH)
-#
-#        # Erase pages
-#        for page in code.pages:
-#            print('.', end='', flush=True)
-#            self.blser.send_erase(start=page, end=page+0x800)
-#
-#        # Write/verify rows
-#        for row in code.rows:
-#            print('.', end='', flush=True)
-#            self.blser.send_write_row(
-#                start=row.address, data=row.data)
-#
-#            row_words = [row.data[i:i+4] for i in range(0, 512, 4)]
-#            row_words = [bytes(reversed(word)) for word in row_words]
-#            row_data = bytearray(b''.join(row_words))
-#            # Replace MSB of each  word with 0
-#            for index in range(len(row_data)):
-#                if index % 4 == 0:
-#                    row_data[index] = 0
-#            crc = binascii.crc32(row_data)
-#
-#            self.blser.send_verify(
-#                start=row.address, end=row.address+0x100, crc=crc)
-#
-#        # Run application
-#        self.blser.send_run()
-#        print('')
+class TestRun(BootloaderTestCase):
+
+    @unittest.skip('Skipping run test to avoid leaving bootloader.')
+    def test_program_and_run(self):
+        SCRIPT_DIR = os.path.dirname(__file__)
+        HEX_PATH = os.path.join(
+            SCRIPT_DIR, '..', 'build', 'src', 'master', 'synth_master.hex')
+        code = bootloader_utils.ApplicationCode(HEX_PATH)
+
+        # Erase pages
+        for page in code.pages:
+            print('.', end='', flush=True)
+            self.blser.send_erase(start=page, end=page+0x800)
+
+        # Write/verify rows
+        for row in code.rows:
+            print('.', end='', flush=True)
+            self.blser.send_write_row(
+                start=row.address, data=row.data)
+
+            # Replace MSB of each word with 0
+            for index in range(len(row.data)):
+                if index % 4 == 3:
+                    row.data[index] = 0
+            crc = binascii.crc32(row.data)
+
+            self.blser.send_verify(
+                start=row.address, end=row.address+0x100, crc=crc)
+
+        # Run application
+        self.blser.send_run()
+        print('')
