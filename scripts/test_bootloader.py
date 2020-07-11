@@ -282,36 +282,3 @@ class TestWriteRow(BootloaderTestCase):
         # Send the verify command
         self.blser.send_verify(
             start=0x4000, end=0x4100, crc=expected_crc)
-
-class TestRun(BootloaderTestCase):
-
-    @unittest.skip('Skipping run test to avoid leaving bootloader.')
-    def test_program_and_run(self):
-        SCRIPT_DIR = os.path.dirname(__file__)
-        HEX_PATH = os.path.join(
-            SCRIPT_DIR, '..', 'build', 'src', 'master', 'synth_master.hex')
-        code = bootloader_utils.ApplicationCode(HEX_PATH)
-
-        # Erase pages
-        for page in code.pages:
-            print('.', end='', flush=True)
-            self.blser.send_erase(start=page, end=page+0x800)
-
-        # Write/verify rows
-        for row in code.rows:
-            print('.', end='', flush=True)
-            self.blser.send_write_row(
-                start=row.address, data=row.data)
-
-            # Replace MSB of each word with 0
-            for index in range(len(row.data)):
-                if index % 4 == 3:
-                    row.data[index] = 0
-            crc = binascii.crc32(row.data)
-
-            self.blser.send_verify(
-                start=row.address, end=row.address+0x100, crc=crc)
-
-        # Run application
-        self.blser.send_run()
-        print('')
