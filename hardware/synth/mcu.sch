@@ -1,0 +1,109 @@
+EESchema Schematic File Version 4
+LIBS:synth-cache
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 3 12
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Memory_EEPROM:CAT24M01W U?
+U 1 1 5F7D65EB
+P 9800 5400
+F 0 "U?" H 9450 5750 50  0000 C CNN
+F 1 "CAT24M01W" H 9450 5650 50  0000 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 10650 5150 50  0001 C CNN
+F 3 "https://www.onsemi.com/pub/Collateral/CAT24M01-D.PDF" H 9800 5400 50  0001 C CNN
+	1    9800 5400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 5F7D7A48
+P 10050 4900
+F 0 "C?" V 9798 4900 50  0000 C CNN
+F 1 "0.1u" V 9889 4900 50  0000 C CNN
+F 2 "" H 10088 4750 50  0001 C CNN
+F 3 "~" H 10050 4900 50  0001 C CNN
+	1    10050 4900
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #PWR?
+U 1 1 5F7D8293
+P 10250 4950
+F 0 "#PWR?" H 10250 4700 50  0001 C CNN
+F 1 "GND" H 10255 4777 50  0000 C CNN
+F 2 "" H 10250 4950 50  0001 C CNN
+F 3 "" H 10250 4950 50  0001 C CNN
+	1    10250 4950
+	1    0    0    -1  
+$EndComp
+Text Label 10300 5300 0    59   ~ 0
+EEPROM_SDA
+Text Label 10300 5400 0    59   ~ 0
+EEPROM_SCL
+Wire Wire Line
+	10300 5300 10200 5300
+Wire Wire Line
+	10300 5400 10200 5400
+$Comp
+L power:GND #PWR?
+U 1 1 5F7D9952
+P 9800 5750
+F 0 "#PWR?" H 9800 5500 50  0001 C CNN
+F 1 "GND" H 9805 5577 50  0000 C CNN
+F 2 "" H 9800 5750 50  0001 C CNN
+F 3 "" H 9800 5750 50  0001 C CNN
+	1    9800 5750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9800 5750 9800 5700
+NoConn ~ 9400 5400
+NoConn ~ 9400 5500
+Text Label 10300 5500 0    59   ~ 0
+EEPROM_WP
+Wire Wire Line
+	10300 5500 10200 5500
+Wire Wire Line
+	10250 4950 10250 4900
+Wire Wire Line
+	10250 4900 10200 4900
+Wire Wire Line
+	9900 4900 9800 4900
+Connection ~ 9800 4900
+Wire Wire Line
+	9800 4900 9800 5100
+Wire Wire Line
+	9800 4850 9800 4900
+$Comp
+L power:+3.3V #PWR?
+U 1 1 5F7D739E
+P 9800 4850
+F 0 "#PWR?" H 9800 4700 50  0001 C CNN
+F 1 "+3.3V" H 9815 5023 50  0000 C CNN
+F 2 "" H 9800 4850 50  0001 C CNN
+F 3 "" H 9800 4850 50  0001 C CNN
+	1    9800 4850
+	1    0    0    -1  
+$EndComp
+Wire Notes Line
+	9150 6050 11000 6050
+Wire Notes Line
+	11000 6050 11000 4150
+Wire Notes Line
+	9150 4150 9150 6050
+Wire Notes Line
+	9150 4150 11000 4150
+Text Notes 9750 4450 0    118  ~ 0
+EEPROM
+$EndSCHEMATC
