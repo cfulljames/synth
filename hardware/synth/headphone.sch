@@ -23,7 +23,7 @@ AR Path="/5F8C467C" Ref="U?"  Part="1"
 AR Path="/5F89ED84/5F8C467C" Ref="U15"  Part="1" 
 F 0 "U15" H 5800 2417 50  0000 C CNN
 F 1 "RC4580" H 5800 2326 50  0000 C CNN
-F 2 "" H 5800 2050 50  0001 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 5800 2050 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/rc4580.pdf" H 5800 2050 50  0001 C CNN
 	1    5800 2050
 	1    0    0    -1  
@@ -36,7 +36,7 @@ AR Path="/5F8C4682" Ref="U?"  Part="2"
 AR Path="/5F89ED84/5F8C4682" Ref="U15"  Part="2" 
 F 0 "U15" H 5800 4017 50  0000 C CNN
 F 1 "RC4580" H 5800 3926 50  0000 C CNN
-F 2 "" H 5800 3650 50  0001 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 5800 3650 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/rc4580.pdf" H 5800 3650 50  0001 C CNN
 	2    5800 3650
 	1    0    0    -1  
@@ -49,7 +49,7 @@ AR Path="/5F8C4688" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C4688" Ref="R46"  Part="1" 
 F 0 "R46" V 6295 2050 50  0000 C CNN
 F 1 "100" V 6386 2050 50  0000 C CNN
-F 2 "" V 6540 2040 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 6540 2040 50  0001 C CNN
 F 3 "~" H 6500 2050 50  0001 C CNN
 	1    6500 2050
 	0    1    1    0   
@@ -62,7 +62,7 @@ AR Path="/5F8C468E" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C468E" Ref="R47"  Part="1" 
 F 0 "R47" V 6295 3650 50  0000 C CNN
 F 1 "100" V 6386 3650 50  0000 C CNN
-F 2 "" V 6540 3640 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 6540 3640 50  0001 C CNN
 F 3 "~" H 6500 3650 50  0001 C CNN
 	1    6500 3650
 	0    1    1    0   
@@ -75,7 +75,7 @@ AR Path="/5F8C4694" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C4694" Ref="R41"  Part="1" 
 F 0 "R41" H 5132 3754 50  0000 R CNN
 F 1 "5k" H 5132 3845 50  0000 R CNN
-F 2 "" V 5240 3790 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 5240 3790 50  0001 C CNN
 F 3 "~" H 5200 3800 50  0001 C CNN
 	1    5200 3800
 	-1   0    0    1   
@@ -90,7 +90,7 @@ AR Path="/5F8C469B" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C469B" Ref="R44"  Part="1" 
 F 0 "R44" V 5695 2450 50  0000 C CNN
 F 1 "5k" V 5786 2450 50  0000 C CNN
-F 2 "" V 5940 2440 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 5940 2440 50  0001 C CNN
 F 3 "~" H 5900 2450 50  0001 C CNN
 	1    5900 2450
 	0    1    1    0   
@@ -103,7 +103,7 @@ AR Path="/5F8C46A1" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C46A1" Ref="R45"  Part="1" 
 F 0 "R45" V 5695 4050 50  0000 C CNN
 F 1 "5k" V 5786 4050 50  0000 C CNN
-F 2 "" V 5940 4040 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 5940 4040 50  0001 C CNN
 F 3 "~" H 5900 4050 50  0001 C CNN
 	1    5900 4050
 	0    1    1    0   
@@ -134,7 +134,7 @@ AR Path="/5F8C46B0" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C46B0" Ref="R43"  Part="1" 
 F 0 "R43" H 5432 4254 50  0000 R CNN
 F 1 "5k" H 5432 4345 50  0000 R CNN
-F 2 "" V 5540 4290 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 5540 4290 50  0001 C CNN
 F 3 "~" H 5500 4300 50  0001 C CNN
 	1    5500 4300
 	-1   0    0    1   
@@ -147,7 +147,7 @@ AR Path="/5F8C46B6" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C46B6" Ref="R42"  Part="1" 
 F 0 "R42" H 5568 2746 50  0000 L CNN
 F 1 "5k" H 5568 2655 50  0000 L CNN
-F 2 "" V 5540 2690 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 5540 2690 50  0001 C CNN
 F 3 "~" H 5500 2700 50  0001 C CNN
 	1    5500 2700
 	1    0    0    -1  
@@ -196,7 +196,7 @@ AR Path="/5F8C46CE" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C46CE" Ref="R40"  Part="1" 
 F 0 "R40" H 5268 2246 50  0000 L CNN
 F 1 "5k" H 5268 2155 50  0000 L CNN
-F 2 "" V 5240 2190 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 5240 2190 50  0001 C CNN
 F 3 "~" H 5200 2200 50  0001 C CNN
 	1    5200 2200
 	1    0    0    -1  
@@ -257,7 +257,7 @@ AR Path="/5F8C46F3" Ref="U?"  Part="1"
 AR Path="/5F89ED84/5F8C46F3" Ref="U14"  Part="1" 
 F 0 "U14" H 2650 2317 50  0000 C CNN
 F 1 "RC4580" H 2650 2226 50  0000 C CNN
-F 2 "" H 2650 1950 50  0001 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 2650 1950 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/rc4580.pdf" H 2650 1950 50  0001 C CNN
 	1    2650 1950
 	1    0    0    -1  
@@ -270,7 +270,7 @@ AR Path="/5F8C46F9" Ref="U?"  Part="2"
 AR Path="/5F89ED84/5F8C46F9" Ref="U14"  Part="2" 
 F 0 "U14" H 2650 3917 50  0000 C CNN
 F 1 "RC4580" H 2650 3826 50  0000 C CNN
-F 2 "" H 2650 3550 50  0001 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 2650 3550 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/rc4580.pdf" H 2650 3550 50  0001 C CNN
 	2    2650 3550
 	1    0    0    -1  
@@ -283,7 +283,7 @@ AR Path="/5F8C46FF" Ref="U?"  Part="3"
 AR Path="/5F89ED84/5F8C46FF" Ref="U14"  Part="3" 
 F 0 "U14" H 2508 4946 50  0000 L CNN
 F 1 "RC4580" H 2508 4855 50  0000 L CNN
-F 2 "" H 2550 4900 50  0001 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 2550 4900 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/rc4580.pdf" H 2550 4900 50  0001 C CNN
 	3    2550 4900
 	1    0    0    -1  
@@ -304,7 +304,7 @@ AR Path="/5F8C4709" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C4709" Ref="R38"  Part="1" 
 F 0 "R38" V 2105 3950 50  0000 C CNN
 F 1 "10k" V 2014 3950 50  0000 C CNN
-F 2 "" V 1940 3940 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 1940 3940 50  0001 C CNN
 F 3 "~" H 1900 3950 50  0001 C CNN
 	1    1900 3950
 	0    -1   -1   0   
@@ -332,7 +332,7 @@ AR Path="/5F8C4718" Ref="C?"  Part="1"
 AR Path="/5F89ED84/5F8C4718" Ref="C34"  Part="1" 
 F 0 "C34" H 2965 4746 50  0000 L CNN
 F 1 "0.1u" H 2965 4655 50  0000 L CNN
-F 2 "" H 2888 4550 50  0001 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 2888 4550 50  0001 C CNN
 F 3 "~" H 2850 4700 50  0001 C CNN
 	1    2850 4700
 	1    0    0    -1  
@@ -385,7 +385,7 @@ AR Path="/5F8C473E" Ref="C?"  Part="1"
 AR Path="/5F89ED84/5F8C473E" Ref="C35"  Part="1" 
 F 0 "C35" H 2965 5446 50  0000 L CNN
 F 1 "0.1u" H 2965 5355 50  0000 L CNN
-F 2 "" H 2888 5250 50  0001 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 2888 5250 50  0001 C CNN
 F 3 "~" H 2850 5400 50  0001 C CNN
 	1    2850 5400
 	1    0    0    -1  
@@ -398,7 +398,7 @@ AR Path="/5F8C4745" Ref="U?"  Part="3"
 AR Path="/5F89ED84/5F8C4745" Ref="U15"  Part="3" 
 F 0 "U15" H 6258 4946 50  0000 L CNN
 F 1 "RC4580" H 6258 4855 50  0000 L CNN
-F 2 "" H 6300 4900 50  0001 C CNN
+F 2 "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm" H 6300 4900 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/rc4580.pdf" H 6300 4900 50  0001 C CNN
 	3    6300 4900
 	1    0    0    -1  
@@ -411,7 +411,7 @@ AR Path="/5F8C474B" Ref="C?"  Part="1"
 AR Path="/5F89ED84/5F8C474B" Ref="C36"  Part="1" 
 F 0 "C36" H 6715 4746 50  0000 L CNN
 F 1 "0.1u" H 6715 4655 50  0000 L CNN
-F 2 "" H 6638 4550 50  0001 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 6638 4550 50  0001 C CNN
 F 3 "~" H 6600 4700 50  0001 C CNN
 	1    6600 4700
 	1    0    0    -1  
@@ -464,7 +464,7 @@ AR Path="/5F8C4771" Ref="C?"  Part="1"
 AR Path="/5F89ED84/5F8C4771" Ref="C37"  Part="1" 
 F 0 "C37" H 6715 5446 50  0000 L CNN
 F 1 "0.1u" H 6715 5355 50  0000 L CNN
-F 2 "" H 6638 5250 50  0001 C CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 6638 5250 50  0001 C CNN
 F 3 "~" H 6600 5400 50  0001 C CNN
 	1    6600 5400
 	1    0    0    -1  
@@ -556,7 +556,7 @@ AR Path="/5F8C47A1" Ref="R?"  Part="1"
 AR Path="/5F89ED84/5F8C47A1" Ref="R39"  Part="1" 
 F 0 "R39" V 2155 2350 50  0000 C CNN
 F 1 "10k" V 2064 2350 50  0000 C CNN
-F 2 "" V 1990 2340 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 1990 2340 50  0001 C CNN
 F 3 "~" H 1950 2350 50  0001 C CNN
 	1    1950 2350
 	0    -1   -1   0   

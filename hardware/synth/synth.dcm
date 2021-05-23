@@ -1,5 +1,11 @@
 EESchema-DOCLIB  Version 2.0
 #
+$CMP CLMVC-FKA
+D RGB LED, red/green/blue/anode
+K LED RGB diode
+F ~
+$ENDCMP
+#
 $CMP IS31FL3737
 D 12x12 LED matrix driver with 8-bit PWM and breathing, QFN-40
 K led matrix pwm
