@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr USLetter 11000 8500
 encoding utf-8
-Sheet 3 13
+Sheet 13 13
 Title ""
 Date ""
 Rev ""
@@ -156,20 +156,10 @@ Wire Wire Line
 Text Label 1950 5250 2    59   ~ 0
 EEPROM_WP
 Wire Wire Line
-	2050 4050 1950 4050
-Wire Wire Line
-	1950 3950 2050 3950
-Text Label 1950 3950 2    59   ~ 0
-EEPROM_SCL
-Text Label 1950 4050 2    59   ~ 0
-EEPROM_SDA
-Wire Wire Line
 	2050 3650 1950 3650
 Wire Wire Line
 	1950 3750 2050 3750
-Text HLabel 1950 3750 0    59   Output ~ 0
-LED_SCL
-Text HLabel 1950 3650 0    59   Output ~ 0
+Text HLabel 1950 3650 0    59   BiDi ~ 0
 LED_SDA
 Wire Wire Line
 	4650 3300 4550 3300
@@ -179,26 +169,22 @@ Wire Wire Line
 	4650 3400 4550 3400
 Text HLabel 4650 3500 2    59   Output ~ 0
 ~LED_SDB
-Text HLabel 4650 3400 2    59   Input ~ 0
+Text HLabel 4650 3400 2    59   Output ~ 0
 LED_IIRST
 Text HLabel 4650 3300 2    59   Input ~ 0
 ~LED_INTB
 Wire Wire Line
-	4650 3700 4550 3700
-Text HLabel 4650 3700 2    59   Output ~ 0
-DAC_MCLK_EN
-Wire Wire Line
 	4650 3600 4550 3600
 Text HLabel 4650 3600 2    59   Output ~ 0
-DAC_SDATA
+DAC_DIN
 Wire Wire Line
 	2050 5750 1950 5750
 Wire Wire Line
 	2050 5650 1950 5650
 Text HLabel 1950 5750 0    59   Output ~ 0
-DAC_LRCLK
+DAC_LRCK
 Text HLabel 1950 5650 0    59   Output ~ 0
-DAC_SCLK
+DAC_BCK
 Wire Wire Line
 	2050 3450 1950 3450
 Wire Wire Line
@@ -255,37 +241,37 @@ Wire Wire Line
 	4650 5900 4550 5900
 Wire Wire Line
 	4650 6000 4550 6000
-Text HLabel 4650 6000 2    59   Output ~ 0
+Text HLabel 4650 6000 2    59   Input ~ 0
 BTN_4
-Text HLabel 4650 5900 2    59   Output ~ 0
+Text HLabel 4650 5900 2    59   Input ~ 0
 ENC_4_SW
-Text HLabel 4650 5800 2    59   Output ~ 0
+Text HLabel 4650 5800 2    59   Input ~ 0
 ENC_4_B
-Text HLabel 4650 5700 2    59   Output ~ 0
+Text HLabel 4650 5700 2    59   Input ~ 0
 ENC_4_A
-Text HLabel 4650 5600 2    59   Output ~ 0
+Text HLabel 4650 5600 2    59   Input ~ 0
 BTN_3
-Text HLabel 4650 5500 2    59   Output ~ 0
+Text HLabel 4650 5500 2    59   Input ~ 0
 ENC_3_SW
-Text HLabel 4650 5400 2    59   Output ~ 0
+Text HLabel 4650 5400 2    59   Input ~ 0
 ENC_3_B
-Text HLabel 4650 5300 2    59   Output ~ 0
+Text HLabel 4650 5300 2    59   Input ~ 0
 ENC_3_A
-Text HLabel 4650 5200 2    59   Output ~ 0
+Text HLabel 4650 5200 2    59   Input ~ 0
 BTN_2
-Text HLabel 4650 5100 2    59   Output ~ 0
+Text HLabel 4650 5100 2    59   Input ~ 0
 ENC_2_SW
-Text HLabel 4650 5000 2    59   Output ~ 0
+Text HLabel 4650 5000 2    59   Input ~ 0
 ENC_2_B
-Text HLabel 4650 4900 2    59   Output ~ 0
+Text HLabel 4650 4900 2    59   Input ~ 0
 ENC_2_A
-Text HLabel 4650 4800 2    59   Output ~ 0
+Text HLabel 4650 4800 2    59   Input ~ 0
 BTN_1
-Text HLabel 4650 4700 2    59   Output ~ 0
+Text HLabel 4650 4700 2    59   Input ~ 0
 ENC_1_SW
-Text HLabel 4650 4600 2    59   Output ~ 0
+Text HLabel 4650 4600 2    59   Input ~ 0
 ENC_1_B
-Text HLabel 4650 4500 2    59   Output ~ 0
+Text HLabel 4650 4500 2    59   Input ~ 0
 ENC_1_A
 Wire Wire Line
 	1950 2350 2050 2350
@@ -605,9 +591,6 @@ NoConn ~ 2050 6050
 NoConn ~ 2050 6150
 NoConn ~ 2050 6250
 NoConn ~ 2050 6350
-NoConn ~ 4550 3800
-NoConn ~ 4550 3900
-NoConn ~ 4550 4000
 NoConn ~ 4550 4100
 $Comp
 L Device:LED D?
@@ -875,4 +858,48 @@ NoConn ~ 2050 4250
 Wire Wire Line
 	2050 4650 1950 4650
 NoConn ~ 2050 3850
+Text Label 1750 3950 2    59   ~ 0
+EEPROM_SCL
+Text Label 1750 4050 2    59   ~ 0
+EEPROM_SDA
+Text HLabel 1800 4150 0    59   Output ~ 0
+DAC_SCL
+Text HLabel 1800 4250 0    59   BiDi ~ 0
+DAC_SDA
+Text HLabel 1950 3750 0    59   Output ~ 0
+LED_SCL
+Wire Wire Line
+	1800 4150 1850 4150
+Wire Wire Line
+	1800 4250 1950 4250
+Wire Wire Line
+	1750 4050 1950 4050
+Wire Wire Line
+	1750 3950 1850 3950
+Wire Wire Line
+	1850 4150 1850 3950
+Connection ~ 1850 3950
+Wire Wire Line
+	1850 3950 2050 3950
+Wire Wire Line
+	1950 4250 1950 4050
+Connection ~ 1950 4050
+Wire Wire Line
+	1950 4050 2050 4050
+Text HLabel 4650 3700 2    59   BiDi ~ 0
+DAC_GPIO3
+Text HLabel 4650 3800 2    59   BiDi ~ 0
+DAC_GPIO4
+Text HLabel 4650 3900 2    59   BiDi ~ 0
+DAC_GPIO5
+Text HLabel 4650 4000 2    59   BiDi ~ 0
+DAC_GPIO6
+Wire Wire Line
+	4650 4000 4550 4000
+Wire Wire Line
+	4550 3900 4650 3900
+Wire Wire Line
+	4650 3800 4550 3800
+Wire Wire Line
+	4650 3700 4550 3700
 $EndSCHEMATC
