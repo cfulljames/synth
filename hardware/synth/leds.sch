@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 8 13
+Sheet 11 13
 Title ""
 Date ""
 Rev ""
@@ -2971,7 +2971,7 @@ AR Path="/63327376/633284BC/62501338" Ref="C54"  Part="1"
 AR Path="/63327376/633284C5/62501338" Ref="C62"  Part="1" 
 F 0 "C62" H 1065 2196 50  0000 L CNN
 F 1 "100u" H 1065 2105 50  0000 L CNN
-F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 950 2150 50  0001 C CNN
+F 2 "Capacitor_SMD:CP_Elec_6.3x5.4" H 950 2150 50  0001 C CNN
 F 3 "~" H 950 2150 50  0001 C CNN
 	1    950  2150
 	1    0    0    -1  
